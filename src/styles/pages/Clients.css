@@ -1,0 +1,240 @@
+.clients-page {
+  padding: 20px;
+  height: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #D04E4E;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-button:hover {
+  background-color: #b83c3c;
+}
+
+.table-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: auto;
+  max-height: calc(100vh - 180px);
+  width: 100%;
+  position: relative;
+}
+
+.clients-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #333;
+  table-layout: fixed;
+}
+
+.clients-table th, .clients-table td {
+  border-bottom: 1px solid #eee;
+  padding: 12px 16px;
+  text-align: left;
+  color: #222;
+}
+
+.clients-table th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+  color: #111;
+  position: relative;
+  padding-right: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clients-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: #eee;
+}
+
+.action-button.delete:hover {
+  background-color: #ffe5e5;
+}
+
+/* Стили для состояния загрузки */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(208, 78, 78, 0.2);
+  border-radius: 50%;
+  border-top-color: #D04E4E;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Стили для состояния ошибки */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.error-message {
+  color: #D04E4E;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.error-container button {
+  background-color: #D04E4E;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.error-container button:hover {
+  background-color: #b83c3c;
+}
+
+/* Стили для пустого состояния */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Линия изменения размера столбца */
+.column-resize-line {
+  position: fixed;
+  width: 2px;
+  background-color: #D04E4E;
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 0 5px rgba(208, 78, 78, 0.6);
+}
+
+/* Элемент для изменения ширины столбца */
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.resize-handle:hover {
+  background-color: rgba(208, 78, 78, 0.1);
+}
+
+.resize-handle:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 3px;
+  width: 2px;
+  background-color: rgba(208, 78, 78, 0.3);
+}
+
+.resize-handle:hover:after {
+  background-color: rgba(208, 78, 78, 0.5);
+}
+
+/* Когда таблица в режиме изменения ширины */
+body.resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+.clients-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Стили для ячеек */
+.cell-content {
+  padding: 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+  min-height: 20px;
+}
+
+.cell-content.editable {
+  cursor: pointer;
+}
+
+.cell-content.editable:hover {
+  background-color: rgba(208, 78, 78, 0.1);
+}
+
+/* Стили для поля ввода при редактировании */
+.cell-input {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #D04E4E;
+  border-radius: 3px;
+  background-color: white;
+  color: #222;
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 0 5px rgba(208, 78, 78, 0.3);
+} 

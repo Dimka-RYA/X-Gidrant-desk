@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta http-equiv="Access-Control-Allow-Methods" content="GET, POST, OPTIONS">
+    <meta http-equiv="Access-Control-Allow-Headers" content="Origin, X-Requested-With, Content-Type, Accept">
+    <title>X-Гидрант | Оплата</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #1E1E1E;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: #2D2D2D;
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background-color: #D04E4E;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .payment-info {
+            margin-bottom: 24px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .info-label {
+            color: #A5A5A5;
+        }
+        
+        .progress-container {
+            margin: 32px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #1E1E1E;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #D04E4E;
+            width: 0;
+            transition: width 0.5s ease-in-out;
+            border-radius: 4px;
+        }
+        
+        .status {
+            text-align: center;
+            margin-top: 16px;
+            font-weight: bold;
+            min-height: 24px;
+        }
+        
+        .button {
+            background-color: #D04E4E;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+            margin-top: 24px;
+        }
+        
+        .button:hover {
+            background-color: #B73E3E;
+        }
+        
+        .button:disabled {
+            background-color: #6D6D6D;
+            cursor: not-allowed;
+        }
+        
+        .success-message {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #2CCC71;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="payment-container">
+        <div class="header">
+            <div class="logo">X</div>
+            <div class="title">X-Гидрант | Оплата заказа</div>
+        </div>
+        
+        <div class="payment-info">
+            <div class="info-row">
+                <div class="info-label">Номер заказа:</div>
+                <div class="info-value" id="order-id">XXXX-XXXX</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Сумма к оплате:</div>
+                <div class="info-value" id="amount">0 ₽</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Способ оплаты:</div>
+                <div class="info-value" id="payment-method">СБП (QR-код)</div>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="status" id="status">Ожидание подтверждения...</div>
+        </div>
+        
+        <button class="button" id="confirm-button">Подтвердить оплату</button>
+    </div>
+    
+    <div class="container success-message" id="success-container">
+        <div class="success-icon">✓</div>
+        <h2>Оплата прошла успешно!</h2>
+        <p>Ваш заказ оформлен и скоро будет передан в работу.</p>
+        <button class="button" id="return-button">Вернуться в приложение</button>
+    </div>
+    
+    <script>
+        // Автоматически запускаем подтверждение через 2 секунды для демо-режима
+        window.addEventListener('DOMContentLoaded', (event) => {
+            setTimeout(() => {
+                // Если есть параметр auto=true, автоматически подтверждаем платеж
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('auto') === 'true') {
+                    document.getElementById('confirm-button').click();
+                }
+            }, 2000);
+        });
+    
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id') || 'XXXX-XXXX';
+        const amount = urlParams.get('amount') || '0';
+        const paymentMethod = urlParams.get('method') || 'СБП (QR-код)';
+        const returnUrl = urlParams.get('return_url') || 'x-gidrant://payment_success';
+        
+        // Устанавливаем значения в интерфейсе
+        document.getElementById('order-id').textContent = orderId;
+        document.getElementById('amount').textContent = amount + ' ₽';
+        document.getElementById('payment-method').textContent = paymentMethod;
+        
+        // Кнопка подтверждения
+        const confirmButton = document.getElementById('confirm-button');
+        const progressFill = document.getElementById('progress-fill');
+        const statusText = document.getElementById('status');
+        const paymentContainer = document.getElementById('payment-container');
+        const successContainer = document.getElementById('success-container');
+        const returnButton = document.getElementById('return-button');
+        
+        // Имитация процесса оплаты
+        confirmButton.addEventListener('click', function() {
+            confirmButton.disabled = true;
+            statusText.textContent = 'Обработка платежа...';
+            
+            let progress = 0;
+            const interval = setInterval(function() {
+                progress += 5;
+                progressFill.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    // Ждем секунду для завершения анимации
+                    setTimeout(() => {
+                        statusText.textContent = 'Платеж подтвержден';
+                        
+                        // Показываем экран успешной оплаты
+                        setTimeout(() => {
+                            paymentContainer.style.display = 'none';
+                            successContainer.style.display = 'flex';
+                        }, 1000);
+                    }, 500);
+                } else if (progress >= 75) {
+                    statusText.textContent = 'Завершение платежа...';
+                } else if (progress >= 50) {
+                    statusText.textContent = 'Проверка данных...';
+                } else if (progress >= 25) {
+                    statusText.textContent = 'Подключение к платежной системе...';
+                }
+            }, 200);
+        });
+        
+        // Возврат в приложение
+        returnButton.addEventListener('click', function() {
+            window.location.href = returnUrl;
+        });
+    </script>
+</body>
+</html> 

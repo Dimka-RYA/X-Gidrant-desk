@@ -1,0 +1,716 @@
+/* Стили для страницы диспетчера */
+.dispatcher-page {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: #2c3e50; /* Новый цвет шрифта */
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1565c0; /* Новый цвет заголовка */
+  margin: 0;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-filter {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 14px;
+  min-width: 160px;
+  color: #2c3e50; /* Цвет шрифта */
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-input {
+  padding: 8px 12px;
+  padding-right: 32px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 250px;
+  font-size: 14px;
+  color: #2c3e50; /* Цвет шрифта */
+}
+
+.clear-search {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Интерактивная панель с вкладками */
+.interactive-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.dashboard-tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dashboard-tab {
+  padding: 12px 20px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #607d8b;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.dashboard-tab:hover {
+  color: #1976d2;
+}
+
+.dashboard-tab.active {
+  color: #1976d2;
+  border-bottom-color: #1976d2;
+}
+
+.dashboard-content {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Карта */
+.map-section {
+  margin-bottom: 20px;
+}
+
+/* Таблица заказов */
+.orders-table-container {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  background: white;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #455a64; /* Новый цвет заголовков таблицы */
+  background-color: #f7f7f7;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.orders-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  color: #2c3e50; /* Новый цвет текста */
+}
+
+.orders-table tr:last-child td {
+  border-bottom: none;
+}
+
+.orders-table tr:hover {
+  background-color: #f5f9ff; /* Новый цвет при наведении */
+}
+
+.new-order {
+  background-color: #fff8e7;
+}
+
+.order-id {
+  font-family: monospace;
+  font-size: 12px;
+  color: #546e7a; /* Новый цвет для ID */
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+.order-address {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-price {
+  font-weight: 600;
+  color: #e53935; /* Новый цвет цены */
+}
+
+/* Статусы заказов */
+.status-badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.status-new {
+  background-color: rgba(79, 129, 254, 0.15);
+  color: #4f81fe;
+}
+
+.status-assigned {
+  background-color: rgba(250, 173, 20, 0.15);
+  color: #faad14;
+}
+
+.status-accepted {
+  background-color: rgba(255, 153, 0, 0.15);
+  color: #ff9900;
+}
+
+.status-on-way {
+  background-color: rgba(255, 123, 0, 0.15);
+  color: #ff7b00;
+}
+
+.status-arrived {
+  background-color: rgba(255, 77, 79, 0.15);
+  color: #ff4d4f;
+}
+
+.status-working {
+  background-color: rgba(209, 52, 56, 0.15);
+  color: #d13438;
+}
+
+.status-in-progress {
+  background-color: rgba(82, 196, 26, 0.15);
+  color: #52c41a;
+}
+
+.status-checking {
+  background-color: rgba(19, 194, 194, 0.15);
+  color: #13c2c2;
+}
+
+.status-completed {
+  background-color: rgba(82, 196, 26, 0.15);
+  color: #52c41a;
+}
+
+.status-canceled {
+  background-color: rgba(245, 34, 45, 0.15);
+  color: #f5222d;
+}
+
+.status-default {
+  background-color: rgba(140, 140, 140, 0.15);
+  color: #8c8c8c;
+}
+
+/* Кнопки действий */
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f4f4f4;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: #e3f2fd; /* Новый цвет при наведении */
+}
+
+.action-button.delete:hover {
+  background-color: #ffebee;
+}
+
+.assigned-employee {
+  font-weight: 500;
+  color: #1976d2; /* Новый цвет для имени исполнителя */
+}
+
+.assign-button {
+  padding: 4px 8px;
+  border: 1px solid #1976d2;
+  border-radius: 4px;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.assign-button:hover {
+  background-color: #bbdefb;
+}
+
+/* Карточки статистики */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.stats-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-card-title {
+  font-size: 14px;
+  color: #607d8b;
+  margin-bottom: 8px;
+}
+
+.stats-card-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1565c0;
+}
+
+.stats-card-subtitle {
+  font-size: 12px;
+  color: #9e9e9e;
+  margin-top: 8px;
+}
+
+/* Модальные окна */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1565c0; /* Новый цвет заголовка */
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #9e9e9e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: #f5f5f5;
+  color: #616161;
+}
+
+.modal-body {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Детали заказа */
+.order-details-view {
+  color: #2c3e50; /* Новый цвет шрифта */
+}
+
+.order-details-view h4 {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #1565c0; /* Новый цвет заголовка секции */
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px 24px;
+  margin-bottom: 20px;
+}
+
+.detail-grid p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.detail-grid strong {
+  color: #455a64; /* Новый цвет подзаголовков */
+}
+
+/* Список статусов */
+.status-events-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-left: 2px solid #e0e0e0;
+  padding-left: 20px;
+}
+
+.status-event-item {
+  position: relative;
+  padding: 12px 0;
+  padding-left: 8px;
+}
+
+.status-event-item:before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border: 2px solid #1976d2;
+  border-radius: 50%;
+  left: -26px;
+  top: 14px;
+}
+
+.event-datetime {
+  font-size: 12px;
+  color: #9e9e9e;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.event-status {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+.event-notes {
+  font-size: 14px;
+  color: #616161;
+}
+
+/* Пустое состояние */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 0;
+}
+
+.empty-state svg {
+  color: #bdbdbd;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  color: #757575;
+  margin: 4px 0;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 0;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-left-color: #1976d2;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 32px 0;
+  font-weight: 500;
+}
+
+/* Уведомления */
+.notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #1565c0;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  animation: slideIn 0.3s ease-out;
+  cursor: pointer;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 12px;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.notification-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .employee-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .orders-table {
+    font-size: 14px;
+  }
+  
+  .orders-table th, 
+  .orders-table td {
+    padding: 8px 12px;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header h1 {
+    font-size: 24px;
+  }
+  
+  .dispatcher-page {
+    padding: 16px;
+  }
+  
+  .modal-content {
+    width: 95%;
+  }
+  
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Стили для формы редактирования */
+.edit-order-form {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.edit-order-form h3 {
+  margin-top: 20px;
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #1565c0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.edit-order-form .form-group {
+  margin-bottom: 16px;
+}
+
+.edit-order-form label {
+  display: block;
+  margin-bottom: 4px;
+  color: #455a64;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.edit-order-form input,
+.edit-order-form select,
+.edit-order-form textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2c3e50;
+  background-color: #fff;
+}
+
+.edit-order-form input:focus,
+.edit-order-form select:focus,
+.edit-order-form textarea:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.edit-order-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.edit-order-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.edit-order-form .cancel-button {
+  padding: 8px 16px;
+  background-color: white;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.edit-order-form .cancel-button:hover {
+  background-color: #f5f5f5;
+}
+
+.edit-order-form .save-button {
+  padding: 8px 16px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.edit-order-form .save-button:hover {
+  background-color: #1565c0;
+}

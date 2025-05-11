@@ -1,0 +1,423 @@
+.auth-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.auth-form-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  max-width: 500px;
+  background-color: #fff;
+  z-index: 1;
+}
+
+.auth-background {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2C2C2C;
+}
+
+.auth-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-bg-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #D04E4E, #8B2F2F);
+  background-size: cover;
+  background-position: center;
+}
+
+.auth-bg-gradient::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%238B2F2F" fill-opacity="0.3" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,202.7C672,203,768,181,864,186.7C960,192,1056,224,1152,218.7C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.7;
+}
+
+.auth-bg-gradient::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 800 600" fill="none"><path d="M0 100 Q 200 50, 400 150 Q 600 250, 800 150" stroke="white" stroke-width="2" stroke-opacity="0.3" /><path d="M0 250 Q 200 350, 400 250 Q 600 150, 800 250" stroke="white" stroke-width="2" stroke-opacity="0.3" /><path d="M0 400 Q 200 300, 400 400 Q 600 500, 800 400" stroke="white" stroke-width="2" stroke-opacity="0.3" /><path d="M0 550 Q 200 450, 400 550 Q 600 650, 800 550" stroke="white" stroke-width="2" stroke-opacity="0.3" /></svg>');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+.auth-bg-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Стили для SVG изображений */
+.auth-bg-svg {
+  position: absolute;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.auth-bg-svg-1 {
+  top: 10%;
+  right: 10%;
+  width: 30%;
+  height: auto;
+  z-index: 1;
+  opacity: 1;
+}
+
+.auth-bg-svg-2 {
+  top: 50%;
+  left: 10%;
+  width: 30%;
+  height: auto;
+  z-index: 2;
+  opacity: 1;
+  transform: translateY(-50%);
+}
+
+.auth-bg-svg-3 {
+  bottom: 15%;
+  right: 5%;
+  width: 25%;
+  height: auto;
+  z-index: 3;
+  opacity: 1;
+}
+
+/* Медиа-запросы для адаптивного отображения SVG */
+@media (min-width: 1600px) {
+  .auth-bg-svg-1 {
+    width: 28%;
+    right: 15%;
+  }
+  
+  .auth-bg-svg-2 {
+    width: 28%;
+    left: 15%;
+  }
+  
+  .auth-bg-svg-3 {
+    width: 22%;
+    right: 10%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .auth-bg-svg-1 {
+    width: 35%;
+    top: 15%;
+  }
+  
+  .auth-bg-svg-2 {
+    width: 35%;
+    left: 8%;
+  }
+  
+  .auth-bg-svg-3 {
+    width: 30%;
+  }
+}
+
+.auth-bg-circles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.auth-bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-bg-circle-1 {
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+}
+
+.auth-bg-circle-2 {
+  bottom: -100px;
+  left: -50px;
+  width: 300px;
+  height: 300px;
+}
+
+.auth-bg-circle-3 {
+  top: 30%;
+  left: 25%;
+  width: 100px;
+  height: 100px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-header h2 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
+}
+
+.auth-form {
+  width: 100%;
+  max-width: 350px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  background-color: #fff;
+  color: #333;
+}
+
+.form-group input:focus {
+  border-color: #D04E4E;
+  outline: none;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #D04E4E;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-button:hover {
+  background-color: #B83C3C;
+}
+
+.auth-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background-color: #FFE9E9;
+  color: #D32F2F;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.auth-test-credentials {
+  margin-top: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.test-button {
+  background: none;
+  border: 1px solid #D04E4E;
+  color: #D04E4E;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s;
+}
+
+.test-button:hover {
+  background-color: #D04E4E;
+  color: white;
+}
+
+.credentials-info {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .auth-container {
+    flex-direction: column-reverse;
+  }
+  
+  .auth-background {
+    height: 30vh;
+  }
+  
+  .auth-form-container {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .auth-bg-element-1 {
+    width: 150px;
+    height: 150px;
+  }
+  .auth-bg-element-2 {
+    width: 180px;
+    height: 180px;
+  }
+  .auth-bg-element-3 {
+    width: 200px;
+    height: 200px;
+  }
+  .auth-bg-element-4 {
+    width: 170px;
+    height: 170px;
+  }
+}
+
+@media (max-width: 992px) {
+  .auth-bg-element-1 {
+    width: 120px;
+    height: 120px;
+  }
+  .auth-bg-element-2 {
+    width: 150px;
+    height: 150px;
+  }
+  .auth-bg-element-3 {
+    width: 160px;
+    height: 160px;
+  }
+  .auth-bg-element-4 {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+}
+
+/* Анимация для мигающего индикатора камеры */
+@keyframes cameraRecordBlink {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+/* Анимация движения камеры */
+@keyframes cameraMovement {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(5deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(-15px) scale(1.1);
+  }
+  100% {
+    opacity: 0.7;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@keyframes fireFloat {
+  0% {
+    transform: translateY(0px) rotate(-1deg);
+  }
+  25% {
+    transform: translateY(-5px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+  75% {
+    transform: translateY(-5px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(-1deg);
+  }
+}
