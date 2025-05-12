@@ -94,6 +94,8 @@ const Orders: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
   // Функция для получения имени пользователя по ID
   const fetchUserName = async (userId: string) => {
@@ -255,21 +257,29 @@ const Orders: React.FC = () => {
     setFilteredOrders(filtered);
   }, [orders, statusFilter, searchQuery]);
 
+  // Обработчик открытия модального окна подтверждения удаления
+  const openDeleteConfirmation = (orderId: string) => {
+    setOrderToDelete(orderId);
+    setShowDeleteModal(true);
+  };
+
   // Обработчик удаления заказа
-  const handleDeleteOrder = async (orderId: string) => {
-    if (!window.confirm('Вы уверены, что хотите удалить этот заказ?')) {
-      return;
-    }
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
     
     try {
-      await deleteDoc(doc(db, 'orders', orderId));
+      await deleteDoc(doc(db, 'orders', orderToDelete));
       setNotification('Заказ успешно удален');
       
-      // Если удаляем открытый заказ, закрываем модальное окно
-      if (selectedOrder && selectedOrder.id === orderId) {
+      // Если удаляем открытый заказ, закрываем модальное окно деталей
+      if (selectedOrder && selectedOrder.id === orderToDelete) {
         setSelectedOrder(null);
         setIsDetailsModalOpen(false);
       }
+      
+      // Закрываем модальное окно подтверждения
+      setShowDeleteModal(false);
+      setOrderToDelete(null);
     } catch (err) {
       console.error('Ошибка при удалении заказа:', err);
       setNotification('Ошибка при удалении заказа');
@@ -537,7 +547,7 @@ const Orders: React.FC = () => {
                       </button>
                       <button 
                         className="action-button delete"
-                        onClick={() => handleDeleteOrder(order.id)}
+                        onClick={() => openDeleteConfirmation(order.id)}
                         title="Удалить заказ"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -763,6 +773,26 @@ const Orders: React.FC = () => {
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Модальное окно подтверждения удаления заказа */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content delete-confirm-modal">
+            <div className="modal-header">
+              <h2>Подтверждение удаления</h2>
+              <button className="close-button" onClick={() => setShowDeleteModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>Вы уверены, что хотите удалить этот заказ?</p>
+              <p>Это действие нельзя отменить.</p>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-button" onClick={() => setShowDeleteModal(false)}>Отмена</button>
+              <button className="delete-button" onClick={handleDeleteOrder}>Удалить</button>
             </div>
           </div>
         </div>

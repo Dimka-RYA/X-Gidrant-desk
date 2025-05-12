@@ -3,12 +3,10 @@
   justify-content: space-between;
   align-items: center;
   height: 32px;
-  background-color: #383636;
   color: white;
   user-select: none;
   -webkit-app-region: drag;
   padding: 0 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .title-bar-left {
@@ -33,79 +31,43 @@
   display: flex;
   align-items: center;
   -webkit-app-region: no-drag;
+  gap: 4px;
 }
 
 .title-bar-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 32px;
-  height: 32px;
-  background: none;
-  border: none;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 26px !important;
+  height: 26px !important;
+  background: none !important;
+  border: none !important;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 4px;
-  position: relative;
-  overflow: hidden;
-}
-
-.title-bar-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: transparent;
-  border-radius: 4px;
-  z-index: -1;
-  transition: all 0.2s ease;
-  transform: scale(0);
-}
-
-.title-bar-button.minimize::before {
-  background-color: #FFD166;
-}
-
-.title-bar-button.maximize::before {
-  background-color: #06D6A0;
-}
-
-.title-bar-button.close::before {
-  background-color: #D04E4E;
-}
-
-.title-bar-button:hover::before {
-  transform: scale(1);
+  transition: background-color 0.2s ease !important;
+  border-radius: 3px !important;
+  color: white !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
 .title-bar-button svg {
-  transition: all 0.2s ease;
-}
-
-.title-bar-button:hover svg {
-  transform: scale(1.2);
-}
-
-.title-bar-button:hover svg path,
-.title-bar-button:hover svg rect {
-  stroke: #383636;
+  display: block;
+  width: 14px;
+  height: 14px;
+  stroke: white !important;
   stroke-width: 2;
+  fill: none;
 }
 
-.control-icon {
-  font-size: 18px;
-  font-weight: bold;
-  line-height: 1;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
+.title-bar-button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: transparent !important;
 }
 
-.title-bar-button:hover .control-icon {
-  color: #383636;
-} 
+.title-bar-button.close:hover {
+  background-color: #D04E4E !important;
+}
+
+.title-bar-button.close:hover svg {
+  stroke: white !important;
+}

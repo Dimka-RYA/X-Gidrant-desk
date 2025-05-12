@@ -370,11 +370,23 @@ const Home: React.FC = () => {
         grid: {
           color: 'rgba(200, 200, 200, 0.2)',
         },
+        ticks: {
+          font: {
+            family: 'Montserrat',
+            size: 12,
+          },
+        },
       },
       y: {
         beginAtZero: true,
         grid: {
           color: 'rgba(200, 200, 200, 0.2)',
+        },
+        ticks: {
+          font: {
+            family: 'Montserrat',
+            size: 12,
+          },
         },
       },
     },
@@ -386,7 +398,7 @@ const Home: React.FC = () => {
           boxWidth: 20,
           padding: 15,
           font: {
-            family: 'Arial',
+            family: 'Montserrat',
             size: 14,
             weight: 500,
           },
@@ -394,14 +406,27 @@ const Home: React.FC = () => {
         },
         title: {
           text: 'Легенда',
-          display: true,
+          display: false,
           color: '#555',
           font: {
-            family: 'Arial',
+            family: 'Montserrat',
             size: 16,
             weight: 700,
           },
         },
+      },
+      tooltip: {
+        titleFont: {
+          family: 'Montserrat',
+          size: 14,
+        },
+        bodyFont: {
+          family: 'Montserrat',
+          size: 13,
+        },
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        padding: 10,
+        cornerRadius: 6,
       },
     },
   };

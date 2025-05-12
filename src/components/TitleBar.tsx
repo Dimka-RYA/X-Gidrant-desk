@@ -1,5 +1,6 @@
 import React from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { Minus, Square, X } from 'lucide-react';
 import '../styles/TitleBar.css';
 import logoImage from '../assets/logo_final.png';
 
@@ -26,13 +27,13 @@ const TitleBar: React.FC = () => {
       </div>
       <div className="title-bar-controls">
         <button className="title-bar-button minimize" onClick={handleMinimize} title="Свернуть">
-          <span className="control-icon">−</span>
+          <Minus size={14} color="white" strokeWidth={2.5} style={{ color: 'white' }} />
         </button>
         <button className="title-bar-button maximize" onClick={handleMaximize} title="Развернуть">
-          <span className="control-icon">□</span>
+          <Square size={14} color="white" strokeWidth={2.5} style={{ color: 'white' }} />
         </button>
         <button className="title-bar-button close" onClick={handleClose} title="Закрыть">
-          <span className="control-icon">×</span>
+          <X size={14} color="white" strokeWidth={2.5} style={{ color: 'white' }} />
         </button>
       </div>
     </div>

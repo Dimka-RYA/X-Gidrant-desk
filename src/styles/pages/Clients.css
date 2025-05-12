@@ -1,13 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 .clients-page {
-  padding: 20px;
+  padding: 24px;
   height: 100%;
+  font-family: 'Montserrat', sans-serif;
+  color: #333;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.page-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
 }
 
 .add-button {
@@ -17,20 +28,24 @@
   background-color: #D04E4E;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
+  border-radius: 6px;
+  padding: 10px 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
 }
 
 .add-button:hover {
   background-color: #b83c3c;
+  box-shadow: 0 4px 8px rgba(208, 78, 78, 0.2);
 }
 
-.table-container {
+.clients-table-container {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   overflow: auto;
   max-height: calc(100vh - 180px);
   width: 100%;
@@ -46,72 +61,87 @@
 
 .clients-table th, .clients-table td {
   border-bottom: 1px solid #eee;
-  padding: 12px 16px;
+  padding: 14px 16px;
   text-align: left;
-  color: #222;
 }
 
 .clients-table th {
   background-color: #f9f9f9;
   font-weight: 600;
-  color: #111;
+  color: #333;
   position: relative;
   padding-right: 20px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+.clients-table td {
+  font-size: 14px;
 }
 
 .clients-table tr:hover {
   background-color: #f5f5f5;
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
+.clients-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
+/* Стили для кнопок действий */
 .action-button {
+  width: 32px;
+  height: 32px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
 }
 
-.action-button:hover {
-  background-color: #eee;
+.action-button svg {
+  transition: all 0.2s ease;
+}
+
+.action-button.edit {
+  background-color: rgba(78, 143, 208, 0.1);
+}
+
+.action-button.edit:hover {
+  background-color: rgba(78, 143, 208, 0.2);
+}
+
+.action-button.edit:hover svg {
+  stroke: #4e8fd0;
+}
+
+.action-button.delete {
+  background-color: rgba(208, 78, 78, 0.1);
 }
 
 .action-button.delete:hover {
-  background-color: #ffe5e5;
+  background-color: rgba(208, 78, 78, 0.2);
+}
+
+.action-button.delete:hover svg {
+  stroke: #D04E4E;
+  stroke-width: 2.5;
 }
 
 /* Стили для состояния загрузки */
-.loading-container {
+.loading-indicator {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 300px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(208, 78, 78, 0.2);
-  border-radius: 50%;
-  border-top-color: #D04E4E;
-  animation: spin 1s ease-in-out infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  height: 200px;
+  font-size: 16px;
+  color: #666;
 }
 
 /* Стили для состояния ошибки */
@@ -124,7 +154,7 @@
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  padding: 24px;
 }
 
 .error-message {
@@ -137,23 +167,228 @@
   background-color: #D04E4E;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 8px 16px;
+  border-radius: 6px;
+  padding: 10px 16px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
 }
 
 .error-container button:hover {
   background-color: #b83c3c;
 }
 
-/* Стили для пустого состояния */
-.empty-state {
+/* Стили для ячеек */
+.cell-content {
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-height: 20px;
+}
+
+.cell-content.editable {
+  cursor: pointer;
+}
+
+.cell-content.editable:hover {
+  background-color: rgba(208, 78, 78, 0.08);
+}
+
+/* Стили для поля ввода при редактировании */
+.cell-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #D04E4E;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 0 8px rgba(208, 78, 78, 0.15);
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Модальное окно подтверждения */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
-  color: #888;
-  font-style: italic;
+  z-index: 1000;
+}
+
+.confirm-modal {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  width: 400px;
+  max-width: 90%;
+  overflow: hidden;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.confirm-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.confirm-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+  box-shadow: none;
+  outline: none;
+  position: relative;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.close-button:hover {
+  color: #D04E4E;
+  background: transparent !important;
+  transform: none;
+  box-shadow: none;
+}
+
+.confirm-modal-body {
+  padding: 20px;
+}
+
+.confirm-modal-body p {
+  margin: 0 0 12px;
+  color: #444;
+}
+
+.confirm-modal-body p:last-child {
+  margin-bottom: 0;
+  color: #666;
+  font-size: 13px;
+}
+
+.confirm-modal-footer {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #eee;
+}
+
+.cancel-button, .delete-button {
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+}
+
+.cancel-button {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.cancel-button:hover {
+  background-color: #e0e0e0;
+}
+
+.delete-button {
+  background-color: #D04E4E;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #b83c3c;
+}
+
+/* Уведомление */
+.notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #383636;
+  color: white;
+  border-radius: 8px;
+  padding: 14px 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  max-width: 400px;
+  z-index: 1000;
+  animation: notificationSlideIn 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
+}
+
+@keyframes notificationSlideIn {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.notification-close {
+  margin-left: 12px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 0 0 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  line-height: 1;
+  transition: color 0.2s;
+  outline: none;
+}
+
+.notification-close:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.notification-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: transparent !important;
+}
+
+.notification-close:active {
+  color: white;
+  background: transparent !important;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Линия изменения размера столбца */
@@ -237,4 +472,15 @@ body.resizing {
   font-size: 14px;
   outline: none;
   box-shadow: 0 0 5px rgba(208, 78, 78, 0.3);
+}
+
+.actions-cell {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.actions-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 } 

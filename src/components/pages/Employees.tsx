@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where, setDoc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, where, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '../../assets/firebase';
 import '../../styles/pages/Employees.css';
@@ -11,6 +11,12 @@ interface Employee {
   phone: string;
   email: string;
   role: string;
+}
+
+interface EditingCell {
+  employeeId: string;
+  field: keyof Employee;
+  value: string;
 }
 
 interface NewEmployee {
@@ -27,6 +33,10 @@ const Employees: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
+  const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
   const [newEmployee, setNewEmployee] = useState<NewEmployee>({
     name: '',
     position: '',
@@ -117,7 +127,8 @@ const Employees: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Обработчик изменения значения в форме добавления нового сотрудника
+  const handleFormInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewEmployee({
       ...newEmployee,
@@ -255,6 +266,109 @@ const Employees: React.FC = () => {
     }
   };
 
+  // Обработчик начала редактирования ячейки
+  const handleCellClick = (employee: Employee, field: keyof Employee) => {
+    // Не редактируем ID и role
+    if (field === 'id' || field === 'role') return;
+    
+    // Проверка прав - только админ может редактировать
+    if (userRole !== 'admin') return;
+    
+    setEditingCell({
+      employeeId: employee.id,
+      field,
+      value: employee[field]
+    });
+  };
+
+  // Обработчик изменения значения в поле ввода при редактировании ячейки
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editingCell) return;
+    
+    setEditingCell({
+      ...editingCell,
+      value: e.target.value
+    });
+  };
+
+  // Обработчик завершения редактирования
+  const handleInputBlur = async () => {
+    if (!editingCell) return;
+    
+    try {
+      // Находим сотрудника в массиве
+      const employeeIndex = employees.findIndex(e => e.id === editingCell.employeeId);
+      if (employeeIndex === -1) return;
+      
+      // Обновляем локальные данные
+      const updatedEmployees = [...employees];
+      updatedEmployees[employeeIndex] = {
+        ...updatedEmployees[employeeIndex],
+        [editingCell.field]: editingCell.value
+      };
+      
+      setEmployees(updatedEmployees);
+      
+      // Обновляем данные в Firebase
+      const employeeDocRef = doc(db, 'users', editingCell.employeeId);
+      await updateDoc(employeeDocRef, {
+        [editingCell.field]: editingCell.value
+      });
+      
+      setNotification('Данные сотрудника обновлены');
+      
+      console.log(`Данные сотрудника ${editingCell.employeeId} обновлены`);
+    } catch (err) {
+      console.error("Ошибка при обновлении данных сотрудника:", err);
+      setNotification('Ошибка при обновлении данных');
+    } finally {
+      setEditingCell(null);
+    }
+  };
+
+  // Обработчик нажатия клавиши Enter для сохранения изменений
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleInputBlur();
+    }
+  };
+
+  // Функция для отображения ячейки таблицы
+  const renderCell = (employee: Employee, field: keyof Employee) => {
+    // Проверяем, редактируется ли эта ячейка
+    const isEditing = 
+      editingCell && 
+      editingCell.employeeId === employee.id && 
+      editingCell.field === field;
+    
+    // Если ячейка редактируется, показываем поле ввода
+    if (isEditing) {
+      return (
+        <input
+          type="text"
+          value={editingCell.value}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyPress={handleKeyPress}
+          className="cell-input"
+          autoFocus
+        />
+      );
+    }
+    
+    // Иначе показываем обычную ячейку с возможностью клика для редактирования
+    const isEditable = field !== 'id' && field !== 'role' && userRole === 'admin';
+    
+    return (
+      <div 
+        className={`cell-content ${isEditable ? 'editable' : ''}`}
+        onClick={() => isEditable && handleCellClick(employee, field)}
+      >
+        {employee[field]}
+      </div>
+    );
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -309,29 +423,49 @@ const Employees: React.FC = () => {
       });
       setEmployeeType('');
       
+      setNotification('Сотрудник успешно добавлен');
+      
     } catch (err) {
       console.error("Ошибка при создании сотрудника:", err);
       alert(`Ошибка при создании сотрудника: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
     }
   };
 
-  const handleDeleteEmployee = async (id: string) => {
+  // Обработчик нажатия на кнопку удаления сотрудника
+  const openDeleteConfirmation = (id: string) => {
+    setEmployeeToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  // Обработчик подтверждения удаления сотрудника
+  const handleDeleteEmployee = async () => {
     // Проверка роли - только админ может удалять сотрудников
-    if (userRole !== 'admin') {
-      alert('У вас нет прав для удаления сотрудников');
+    if (userRole !== 'admin' || !employeeToDelete) {
       return;
     }
     
-    if (window.confirm('Вы уверены, что хотите удалить этого сотрудника?')) {
-      try {
-        await deleteDoc(doc(db, 'users', id));
-        fetchEmployees();
-      } catch (err) {
-        console.error("Ошибка при удалении сотрудника:", err);
-        alert(`Ошибка при удалении сотрудника: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
-      }
+    try {
+      await deleteDoc(doc(db, 'users', employeeToDelete));
+      fetchEmployees();
+      setShowDeleteModal(false);
+      setEmployeeToDelete(null);
+      setNotification('Сотрудник успешно удален');
+    } catch (err) {
+      console.error("Ошибка при удалении сотрудника:", err);
+      setNotification('Ошибка при удалении сотрудника');
     }
   };
+
+  // Auto-close notification after 5 seconds
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   return (
     <div className="employees-page">
@@ -368,16 +502,6 @@ const Employees: React.FC = () => {
             <table className="employees-table" ref={tableRef}>
               <thead>
                 <tr>
-                  <th 
-                    data-column="id" 
-                    style={{ width: columnWidths['id'] ? `${columnWidths['id']}px` : undefined }}
-                  >
-                    ID
-                    <div 
-                      className="resize-handle"
-                      onMouseDown={(e) => handleResizeStart('id', e)}
-                    ></div>
-                  </th>
                   <th 
                     data-column="name" 
                     style={{ width: columnWidths['name'] ? `${columnWidths['name']}px` : undefined }}
@@ -418,6 +542,16 @@ const Employees: React.FC = () => {
                       onMouseDown={(e) => handleResizeStart('email', e)}
                     ></div>
                   </th>
+                  <th 
+                    data-column="role" 
+                    style={{ width: columnWidths['role'] ? `${columnWidths['role']}px` : undefined }}
+                  >
+                    Роль
+                    <div 
+                      className="resize-handle"
+                      onMouseDown={(e) => handleResizeStart('role', e)}
+                    ></div>
+                  </th>
                   {/* Колонка с действиями видна только для админа */}
                   {userRole === 'admin' && (
                     <th 
@@ -436,20 +570,20 @@ const Employees: React.FC = () => {
               <tbody>
                 {employees.map(employee => (
                   <tr key={employee.id}>
-                    <td data-column="id" style={{ width: columnWidths['id'] ? `${columnWidths['id']}px` : undefined }}>
-                      {employee.id}
-                    </td>
                     <td data-column="name" style={{ width: columnWidths['name'] ? `${columnWidths['name']}px` : undefined }}>
-                      {employee.name}
+                      {renderCell(employee, 'name')}
                     </td>
                     <td data-column="position" style={{ width: columnWidths['position'] ? `${columnWidths['position']}px` : undefined }}>
-                      {employee.position}
+                      {renderCell(employee, 'position')}
                     </td>
                     <td data-column="phone" style={{ width: columnWidths['phone'] ? `${columnWidths['phone']}px` : undefined }}>
-                      {employee.phone}
+                      {renderCell(employee, 'phone')}
                     </td>
                     <td data-column="email" style={{ width: columnWidths['email'] ? `${columnWidths['email']}px` : undefined }}>
-                      {employee.email}
+                      {renderCell(employee, 'email')}
+                    </td>
+                    <td data-column="role" style={{ width: columnWidths['role'] ? `${columnWidths['role']}px` : undefined }}>
+                      {employee.role}
                     </td>
                     {/* Кнопки редактирования и удаления только для админа */}
                     {userRole === 'admin' && (
@@ -458,7 +592,7 @@ const Employees: React.FC = () => {
                         data-column="actions"
                         style={{ width: columnWidths['actions'] ? `${columnWidths['actions']}px` : undefined }}
                       >
-                        <button className="action-button edit">
+                        <button className="action-button edit" onClick={() => handleCellClick(employee, 'name')}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#383636" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="#383636" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -466,7 +600,7 @@ const Employees: React.FC = () => {
                         </button>
                         <button 
                           className="action-button delete"
-                          onClick={() => handleDeleteEmployee(employee.id)}
+                          onClick={() => openDeleteConfirmation(employee.id)}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M3 6H5H21" stroke="#D04E4E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -528,7 +662,7 @@ const Employees: React.FC = () => {
                     id="name"
                     name="name"
                     value={newEmployee.name}
-                    onChange={handleInputChange}
+                    onChange={handleFormInputChange}
                     required
                   />
                 </div>
@@ -540,7 +674,7 @@ const Employees: React.FC = () => {
                     id="phone"
                     name="phone"
                     value={newEmployee.phone}
-                    onChange={handleInputChange}
+                    onChange={handleFormInputChange}
                   />
                 </div>
                 
@@ -551,7 +685,7 @@ const Employees: React.FC = () => {
                     id="email"
                     name="email"
                     value={newEmployee.email}
-                    onChange={handleInputChange}
+                    onChange={handleFormInputChange}
                     required
                   />
                 </div>
@@ -563,7 +697,7 @@ const Employees: React.FC = () => {
                     id="password"
                     name="password"
                     value={newEmployee.password}
-                    onChange={handleInputChange}
+                    onChange={handleFormInputChange}
                     required
                     minLength={6}
                   />
@@ -587,6 +721,34 @@ const Employees: React.FC = () => {
               </form>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Модальное окно подтверждения удаления сотрудника */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content delete-confirm-modal">
+            <div className="modal-header">
+              <h3>Подтверждение удаления</h3>
+              <button className="modal-close" onClick={() => setShowDeleteModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>Вы уверены, что хотите удалить этого сотрудника?</p>
+              <p>Это действие нельзя отменить.</p>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-button" onClick={() => setShowDeleteModal(false)}>Отмена</button>
+              <button className="delete-button" onClick={handleDeleteEmployee}>Удалить</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Уведомление */}
+      {notification && (
+        <div className="notification">
+          {notification}
+          <button className="notification-close" onClick={() => setNotification(null)}>×</button>
         </div>
       )}
     </div>

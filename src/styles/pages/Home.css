@@ -1,17 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 .home-page {
   padding: 24px;
   color: #444;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .home-page h2 {
   font-size: 24px;
   margin-bottom: 8px;
   color: #333;
+  font-weight: 600;
 }
 
 .home-page p {
   margin-bottom: 24px;
   color: #666;
+  font-weight: 400;
 }
 
 /* Стили для сообщений об ошибках */
@@ -88,6 +93,12 @@
   min-width: 200px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   border: 1px solid #eaeaea;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card-icon {
@@ -98,6 +109,7 @@
   font-size: 16px;
   margin-bottom: 4px;
   color: #333;
+  font-weight: 600;
 }
 
 .card-content p {
@@ -337,4 +349,60 @@ tr:last-child td {
   padding: 24px;
   color: #666;
   font-style: italic;
+}
+
+/* Кнопки периодов для графиков */
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.chart-header h3 {
+  font-size: 18px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.period-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.period-filters button {
+  background-color: #D04E4E;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+}
+
+.period-filters button:hover {
+  background-color: #b83b3b;
+}
+
+.period-filters button.active {
+  background-color: #a03939;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.period-filters button.active::after {
+  display: none;
+}
+
+.chart-container {
+  height: 300px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eaeaea;
+  margin-bottom: 24px;
 } 

@@ -48,7 +48,7 @@ interface LocationMapProps {
 
 const LocationMap: React.FC<LocationMapProps> = ({ 
   locations, 
-  center = [55.7522, 37.6156], // Москва по умолчанию
+  center = [45.7522, 37.6156], // Москва по умолчанию
   zoom = 10,
   height = '500px'
 }) => {

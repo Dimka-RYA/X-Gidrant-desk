@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { collection, getDocs, doc, setDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../assets/firebase';
 import '../../styles/pages/Income.css';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, Title } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
+import { DollarSign, ShoppingBag, PieChart, PlusCircle, Edit, Trash2, Plus, Minus, ChevronRight, AlertTriangle, X, CheckCircle, AlertCircle } from 'lucide-react';
 
 // Регистрируем компоненты Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, Title);
@@ -39,6 +40,12 @@ interface FirestoreOrder {
   price: number;
   paymentStatus?: string;
   // Добавьте другие необходимые поля из заказов
+}
+
+interface Notification {
+  id: string;
+  type: 'success' | 'error' | 'info';
+  message: string;
 }
 
 const Income: React.FC = () => {
@@ -79,12 +86,20 @@ const Income: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [activeTab, setActiveTab] = useState<'services' | 'categories'>('services');
 
   // Состояния для форм
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [currentService, setCurrentService] = useState<Service | null>(null);
   const [currentCategory, setCurrentCategory] = useState<ServiceCategory | null>(null);
+  
+  // Состояния для модальных окон
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{id: string, type: 'service' | 'category', name: string} | null>(null);
+  
+  // Состояние для уведомлений
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   
   // Данные форм
   const [serviceForm, setServiceForm] = useState<Service>({
@@ -146,9 +161,6 @@ const Income: React.FC = () => {
         categoriesData.forEach(category => {
           categoryIdToName[category.id] = category.name;
         });
-
-        // Вывод в консоль информации о ценах заказов для отладки
-        console.log('Цены заказов:', ordersData.map(order => order.price));
         
         // Подсчитываем доходы и количество заказов по категориям
         const revenueByCategory: Record<string, { revenue: number, count: number }> = {};
@@ -203,6 +215,7 @@ const Income: React.FC = () => {
         setTotalOrders(totalOrdersCount);
       } catch (error) {
         console.error('Ошибка при загрузке данных:', error);
+        showNotification('error', 'Не удалось загрузить данные');
       } finally {
         setIsLoading(false);
       }
@@ -210,6 +223,22 @@ const Income: React.FC = () => {
 
     fetchData();
   }, []);
+
+  // Функция для показа уведомлений
+  const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
+    const id = Date.now().toString();
+    setNotifications(prev => [...prev, { id, type, message }]);
+    
+    // Автоматическое удаление уведомления через 5 секунд
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(notification => notification.id !== id));
+    }, 5000);
+  };
+  
+  // Удаление уведомления
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
 
   // Подготовка данных для круговой диаграммы
   const chartData = {
@@ -227,13 +256,20 @@ const Income: React.FC = () => {
   // Опции для круговой диаграммы
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: true,
     plugins: {
       legend: {
         position: 'right' as const,
         labels: {
           font: {
-            size: 14
-          }
+            size: 14,
+            family: 'Montserrat, sans-serif',
+            weight: 'bold' as const
+          },
+          color: '#000',
+          padding: 16,
+          usePointStyle: true,
+          boxWidth: 10
         }
       },
       tooltip: {
@@ -245,146 +281,179 @@ const Income: React.FC = () => {
             const percentage = Math.round((value / total) * 100);
             return `${label}: ${percentage}%`;
           }
-        }
+        },
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        titleColor: '#000',
+        bodyColor: '#000',
+        titleFont: {
+          size: 14, 
+          weight: 'bold' as const,
+          family: 'Montserrat, sans-serif'
+        },
+        bodyFont: {
+          size: 13,
+          family: 'Montserrat, sans-serif'
+        },
+        padding: 14,
+        borderColor: '#ddd',
+        borderWidth: 1,
+        boxWidth: 0,
+        boxHeight: 0,
+        boxPadding: 0,
+        usePointStyle: true
       }
     },
-  };
-
-  // Обработчики для форм услуг
-  const handleServiceFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name === 'price' || name === 'discount') {
-      setServiceForm({
-        ...serviceForm,
-        [name]: Number(value)
-      });
-    } else {
-      setServiceForm({
-        ...serviceForm,
-        [name]: value
-      });
+    cutout: '50%',
+    animation: {
+      animateScale: true,
+      animateRotate: true,
+      duration: 1000
     }
   };
 
+  // Обработчики форм
+
+  const handleServiceFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setServiceForm(prev => ({
+      ...prev,
+      [name]: name === 'price' || name === 'discount' ? Number(value) : value
+    }));
+  };
+
   const handleFeatureChange = (index: number, value: string) => {
-    const updatedFeatures = [...(serviceForm.features || [])];
-    updatedFeatures[index] = value;
-    setServiceForm({
-      ...serviceForm,
-      features: updatedFeatures
+    setServiceForm(prev => {
+      const updatedFeatures = [...(prev.features || [])];
+      updatedFeatures[index] = value;
+      return {
+        ...prev,
+        features: updatedFeatures
+      };
     });
   };
 
   const addFeature = () => {
-    setServiceForm({
-      ...serviceForm,
-      features: [...(serviceForm.features || []), '']
-    });
+    setServiceForm(prev => ({
+      ...prev,
+      features: [...(prev.features || []), '']
+    }));
   };
 
   const removeFeature = (index: number) => {
-    const updatedFeatures = [...(serviceForm.features || [])];
-    updatedFeatures.splice(index, 1);
-    setServiceForm({
-      ...serviceForm,
-      features: updatedFeatures
+    setServiceForm(prev => {
+      const updatedFeatures = [...(prev.features || [])];
+      updatedFeatures.splice(index, 1);
+      return {
+        ...prev,
+        features: updatedFeatures
+      };
     });
   };
 
-  // Обработчики для форм категорий
   const handleCategoryFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (name === 'order') {
-      setCategoryForm({
-        ...categoryForm,
-        [name]: Number(value)
-      });
-    } else {
-      setCategoryForm({
-        ...categoryForm,
-        [name]: value
-      });
-    }
+    setCategoryForm(prev => ({
+      ...prev,
+      [name]: name === 'order' ? Number(value) : value
+    }));
   };
 
   // Сохранение услуги
   const saveService = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
       const serviceData = {
-        title: serviceForm.title,
-        price: serviceForm.price,
-        currency: serviceForm.currency,
-        discount: serviceForm.discount || 0,
-        description: serviceForm.description || '',
-        categoryId: serviceForm.categoryId || '',
-        features: (serviceForm.features || []).filter(f => f.trim() !== '')
+        ...serviceForm,
+        features: serviceForm.features?.filter(f => f.trim() !== '')
       };
-
+      
       if (currentService) {
         // Обновление существующей услуги
-        await setDoc(doc(db, 'services', serviceForm.id), serviceData, { merge: true });
+        await setDoc(doc(db, 'services', currentService.id), serviceData);
+        showNotification('success', `Услуга "${serviceData.title}" обновлена`);
       } else {
         // Создание новой услуги
         const newServiceRef = doc(collection(db, 'services'));
         await setDoc(newServiceRef, serviceData);
+        showNotification('success', `Услуга "${serviceData.title}" добавлена`);
       }
       
-      // Обновление списка услуг
-      await loadData();
+      // Обновление данных и закрытие формы
       resetServiceForm();
+      loadData();
     } catch (error) {
-      console.error("Ошибка при сохранении услуги:", error);
+      console.error('Ошибка при сохранении услуги:', error);
+      showNotification('error', 'Ошибка при сохранении услуги');
     }
   };
 
   // Сохранение категории
   const saveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
-      const categoryData = {
-        name: categoryForm.name,
-        order: categoryForm.order
-      };
-
       if (currentCategory) {
         // Обновление существующей категории
-        await setDoc(doc(db, 'service_categories', categoryForm.id), categoryData, { merge: true });
+        await setDoc(doc(db, 'service_categories', currentCategory.id), categoryForm);
+        showNotification('success', `Категория "${categoryForm.name}" обновлена`);
       } else {
         // Создание новой категории
         const newCategoryRef = doc(collection(db, 'service_categories'));
-        await setDoc(newCategoryRef, categoryData);
+        await setDoc(newCategoryRef, categoryForm);
+        showNotification('success', `Категория "${categoryForm.name}" добавлена`);
       }
       
-      // Обновление списка категорий
-      await loadData();
+      // Обновление данных и закрытие формы
       resetCategoryForm();
+      loadData();
     } catch (error) {
-      console.error("Ошибка при сохранении категории:", error);
+      console.error('Ошибка при сохранении категории:', error);
+      showNotification('error', 'Ошибка при сохранении категории');
     }
   };
 
-  // Удаление услуги
-  const deleteService = async (id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить эту услугу?')) {
-      try {
-        await deleteDoc(doc(db, 'services', id));
-        await loadData();
-      } catch (error) {
-        console.error("Ошибка при удалении услуги:", error);
-      }
+  // Открытие модального окна удаления
+  const openDeleteConfirmation = (id: string, type: 'service' | 'category') => {
+    const item = type === 'service' 
+      ? services.find(service => service.id === id)
+      : categories.find(category => category.id === id);
+    
+    if (item) {
+      setItemToDelete({
+        id,
+        type,
+        name: 'title' in item ? item.title : item.name
+      });
+      setShowDeleteConfirmation(true);
     }
   };
+  
+  // Закрытие модального окна удаления
+  const closeDeleteConfirmation = () => {
+    setShowDeleteConfirmation(false);
+    setItemToDelete(null);
+  };
 
-  // Удаление категории
-  const deleteCategory = async (id: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить эту категорию? Это может повлиять на связанные услуги.')) {
-      try {
-        await deleteDoc(doc(db, 'service_categories', id));
-        await loadData();
-      } catch (error) {
-        console.error("Ошибка при удалении категории:", error);
+  // Выполнение удаления
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    
+    try {
+      if (itemToDelete.type === 'service') {
+        await deleteDoc(doc(db, 'services', itemToDelete.id));
+        showNotification('success', `Услуга "${itemToDelete.name}" удалена`);
+      } else {
+        await deleteDoc(doc(db, 'service_categories', itemToDelete.id));
+        showNotification('success', `Категория "${itemToDelete.name}" удалена`);
       }
+      
+      setShowDeleteConfirmation(false);
+      setItemToDelete(null);
+      loadData();
+    } catch (error) {
+      console.error(`Ошибка при удалении ${itemToDelete.type === 'service' ? 'услуги' : 'категории'}:`, error);
+      showNotification('error', 'Ошибка при удалении');
     }
   };
 
@@ -442,44 +511,53 @@ const Income: React.FC = () => {
     setShowCategoryForm(false);
   };
 
-  // Получение имени категории по id
+  // Получение названия категории по ID
   const getCategoryName = (categoryId: string = '') => {
     const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.name : 'Без категории';
+    return category ? category.name : 'Не указана';
   };
 
-  // Функция загрузки данных услуг и категорий
+  // Перезагрузка данных
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // Загрузка категорий
-      const categoriesSnapshot = await getDocs(collection(db, 'service_categories'));
-      const categoriesData = categoriesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as Omit<ServiceCategory, 'id'>)
-      }));
-      setCategories(categoriesData.sort((a, b) => a.order - b.order));
-      
-      // Загрузка услуг
-      const servicesSnapshot = await getDocs(collection(db, 'services'));
+      // Загружаем услуги
+      const servicesQuery = query(collection(db, 'services'));
+      const servicesSnapshot = await getDocs(servicesQuery);
       const servicesData = servicesSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...(doc.data() as Omit<Service, 'id'>)
-      }));
+        ...doc.data()
+      } as Service));
       setServices(servicesData);
 
-      // Загрузка заказов и группировка по категориям
-      const ordersSnapshot = await getDocs(collection(db, 'orders'));
-      const ordersData = ordersSnapshot.docs.map(doc => doc.data());
-      
-      // Создаем карту соответствия названия услуги и её категории
-      const serviceToCategory = new Map();
+      // Загружаем категории услуг
+      const categoriesQuery = query(collection(db, 'service_categories'), orderBy('order'));
+      const categoriesSnapshot = await getDocs(categoriesQuery);
+      const categoriesData = categoriesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as ServiceCategory));
+      setCategories(categoriesData);
+
+      // Загружаем заказы
+      const ordersQuery = query(collection(db, 'orders'));
+      const ordersSnapshot = await getDocs(ordersQuery);
+      const ordersData = ordersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as FirestoreOrder));
+
+      // Создаем маппинг услуг к их категориям
+      const serviceToCategory = new Map<string, string>();
       servicesData.forEach(service => {
-        serviceToCategory.set(service.title, service.categoryId);
+        if (service.categoryId) {
+          serviceToCategory.set(service.title, service.categoryId);
+        }
       });
-      
-      // Объект для группировки доходов по категориям
+
+      // Рассчитываем доходы по категориям
       const categoryRevenue: Record<string, number> = {};
+      
       const categoryCount: Record<string, number> = {};
       
       // Обработка заказов
@@ -532,8 +610,23 @@ const Income: React.FC = () => {
 
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
+      showNotification('error', 'Ошибка при загрузке данных');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Получение иконки для уведомления
+  const getNotificationIcon = (type: 'success' | 'error' | 'info') => {
+    switch (type) {
+      case 'success':
+        return <CheckCircle size={18} />;
+      case 'error':
+        return <AlertCircle size={18} />;
+      case 'info':
+        return <AlertTriangle size={18} />;
+      default:
+        return null;
     }
   };
 
@@ -545,7 +638,7 @@ const Income: React.FC = () => {
       <div className="stats-overview">
         <div className="stat-card revenue">
           <div className="stat-icon">
-            <span className="material-symbols-outlined">paid</span>
+            <DollarSign size={24} />
           </div>
           <div className="stat-info">
             <h3>Общий доход</h3>
@@ -555,7 +648,7 @@ const Income: React.FC = () => {
         
         <div className="stat-card orders">
           <div className="stat-icon">
-            <span className="material-symbols-outlined">receipt_long</span>
+            <ShoppingBag size={24} />
           </div>
           <div className="stat-info">
             <h3>Всего заказов</h3>
@@ -566,7 +659,10 @@ const Income: React.FC = () => {
       
       {/* График доходов по категориям услуг */}
       <div className="chart-container">
-        <h2>Распределение доходов по категориям</h2>
+        <h2>
+          <PieChart size={20} className="chart-icon" />
+          <span>Распределение доходов по категориям</span>
+        </h2>
         <div className="pie-chart-wrapper">
           {isLoading ? (
             <div className="loading">Загрузка данных...</div>
@@ -580,249 +676,298 @@ const Income: React.FC = () => {
       <div className="services-management">
         <div className="section-header">
           <h2>Услуги и категории</h2>
-          <div className="action-buttons">
-            <button className="add-button" onClick={() => setShowServiceForm(true)}>Добавить услугу</button>
-            <button className="add-button" onClick={() => setShowCategoryForm(true)}>Добавить категорию</button>
+          <div className="section-actions">
+            <button 
+              className="add-button" 
+              onClick={() => setShowCategoryForm(true)}
+              style={{ backgroundColor: "#D04E4E" }}
+            >
+              <PlusCircle size={16} />
+              <span>Добавить категорию</span>
+            </button>
+            <button 
+              className="add-button" 
+              onClick={() => setShowServiceForm(true)}
+              style={{ backgroundColor: "#D04E4E" }}
+            >
+              <PlusCircle size={16} />
+              <span>Добавить услугу</span>
+            </button>
           </div>
         </div>
         
-        {isLoading ? (
-          <p>Загрузка данных...</p>
-        ) : (
-          <>
-            {/* Вкладки для управления услугами и категориями */}
-            <div className="tabs">
-              <div className={`tab ${!showCategoryForm ? 'active' : ''}`} onClick={() => {
-                resetCategoryForm();
-                resetServiceForm();
-                setShowCategoryForm(false);
-              }}>
-                Услуги
+        <div className="tabs">
+          <div 
+            className={`tab ${activeTab === 'services' ? 'active' : ''}`}
+            onClick={() => setActiveTab('services')}
+          >
+            Услуги
+          </div>
+          <div 
+            className={`tab ${activeTab === 'categories' ? 'active' : ''}`}
+            onClick={() => setActiveTab('categories')}
+          >
+            Категории
+          </div>
+        </div>
+        
+        {showServiceForm && (
+          <div className="form-container">
+            <h3>{currentService ? 'Редактирование услуги' : 'Новая услуга'}</h3>
+            <form onSubmit={saveService}>
+              <div className="form-group">
+                <label>Название услуги</label>
+                <input type="text" name="title" value={serviceForm.title} onChange={handleServiceFormChange} required />
               </div>
-              <div className={`tab ${showCategoryForm ? 'active' : ''}`} onClick={() => {
-                resetCategoryForm();
-                resetServiceForm();
-                setShowCategoryForm(true);
-              }}>
-                Категории
-              </div>
-            </div>
-            
-            {/* Таблица услуг */}
-            {!showCategoryForm && !showServiceForm && (
-              <div className="table-container">
-                <div className="section-actions">
-                  <button className="add-button" onClick={() => {
-                    resetServiceForm();
-                    setShowServiceForm(true);
-                  }}>Добавить услугу</button>
+              
+              <div className="form-group price-group">
+                <label>Цена</label>
+                <div className="price-inputs">
+                  <input 
+                    type="number" 
+                    name="price" 
+                    value={serviceForm.price} 
+                    onChange={handleServiceFormChange} 
+                    min="0" 
+                    required 
+                  />
+                  <input 
+                    type="text" 
+                    name="currency" 
+                    value={serviceForm.currency} 
+                    onChange={handleServiceFormChange} 
+                    className="currency-input" 
+                    required 
+                  />
                 </div>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Название</th>
-                      <th>Категория</th>
-                      <th>Цена</th>
-                      <th>Действия</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {services.map(service => (
-                      <tr key={service.id}>
-                        <td>{service.title}</td>
-                        <td>{getCategoryName(service.categoryId)}</td>
-                        <td>{service.price} {service.currency || '₽'}</td>
-                        <td className="actions">
-                          <button className="action-button edit" onClick={() => editService(service)}>
-                            <span className="material-symbols-outlined">edit</span>
-                          </button>
-                          <button className="action-button delete" onClick={() => deleteService(service.id)}>
-                            <span className="material-symbols-outlined">delete</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
-            )}
-            
-            {/* Таблица категорий */}
-            {showCategoryForm && !showServiceForm && !currentCategory && (
-              <div className="table-container">
-                <div className="section-actions">
-                  <button className="add-button" onClick={() => {
-                    resetCategoryForm();
-                    setCurrentCategory({
-                      id: '',
-                      name: '',
-                      order: 0
-                    });
-                    setShowServiceForm(false);
-                  }}>Добавить категорию</button>
-                </div>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Название</th>
-                      <th>Порядок</th>
-                      <th>Действия</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categories.map(category => (
-                      <tr key={category.id}>
-                        <td>{category.name}</td>
-                        <td>{category.order}</td>
-                        <td className="actions">
-                          <button className="action-button edit" onClick={() => editCategory(category)}>
-                            <span className="material-symbols-outlined">edit</span>
-                          </button>
-                          <button className="action-button delete" onClick={() => deleteCategory(category.id)}>
-                            <span className="material-symbols-outlined">delete</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              
+              <div className="form-group">
+                <label>Скидка (%)</label>
+                <input 
+                  type="number" 
+                  name="discount" 
+                  value={serviceForm.discount} 
+                  onChange={handleServiceFormChange} 
+                  min="0" 
+                  max="100" 
+                />
               </div>
-            )}
-            
-            {/* Форма создания/редактирования услуги */}
-            {!showCategoryForm && showServiceForm && (
-              <div className="form-container">
-                <h3>{currentService ? 'Редактирование услуги' : 'Создание новой услуги'}</h3>
-                <form onSubmit={saveService}>
-                  <div className="form-group">
-                    <label>Название услуги:</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={serviceForm.title}
-                      onChange={handleServiceFormChange}
-                      required
+              
+              <div className="form-group">
+                <label>Описание</label>
+                <textarea 
+                  name="description" 
+                  value={serviceForm.description} 
+                  onChange={handleServiceFormChange} 
+                  rows={3}
+                ></textarea>
+              </div>
+              
+              <div className="form-group">
+                <label>Категория</label>
+                <select 
+                  name="categoryId" 
+                  value={serviceForm.categoryId} 
+                  onChange={handleServiceFormChange}
+                >
+                  <option value="">Выберите категорию</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label>Особенности</label>
+                {serviceForm.features && serviceForm.features.map((feature, index) => (
+                  <div className="feature-input" key={index}>
+                    <input 
+                      type="text" 
+                      value={feature} 
+                      onChange={(e) => handleFeatureChange(index, e.target.value)} 
+                      placeholder="Особенность услуги"
                     />
-                  </div>
-                  <div className="form-group">
-                    <label>Категория:</label>
-                    <select
-                      name="categoryId"
-                      value={serviceForm.categoryId || ''}
-                      onChange={handleServiceFormChange}
+                    <button 
+                      type="button" 
+                      className="remove-feature" 
+                      onClick={() => removeFeature(index)}
+                      disabled={serviceForm.features?.length === 1}
                     >
-                      <option value="">Без категории</option>
-                      {categories.map(category => (
-                        <option key={category.id} value={category.id}>{category.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-group price-group">
-                    <label>Цена:</label>
-                    <input
-                      type="number"
-                      name="price"
-                      value={serviceForm.price}
-                      onChange={handleServiceFormChange}
-                      required
-                      min="0"
-                    />
-                    <input
-                      type="text"
-                      name="currency"
-                      value={serviceForm.currency}
-                      onChange={handleServiceFormChange}
-                      placeholder="₽"
-                      className="currency-input"
-                      maxLength={3}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Скидка (%):</label>
-                    <input
-                      type="number"
-                      name="discount"
-                      value={serviceForm.discount || 0}
-                      onChange={handleServiceFormChange}
-                      min="0"
-                      max="100"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Описание:</label>
-                    <textarea
-                      name="description"
-                      value={serviceForm.description || ''}
-                      onChange={handleServiceFormChange}
-                      rows={4}
-                    ></textarea>
-                  </div>
-                  <div className="form-group">
-                    <label>Особенности услуги:</label>
-                    {serviceForm.features && serviceForm.features.map((feature, index) => (
-                      <div key={index} className="feature-input">
-                        <input
-                          type="text"
-                          value={feature}
-                          onChange={(e) => handleFeatureChange(index, e.target.value)}
-                          placeholder="Особенность услуги"
-                        />
-                        <button 
-                          type="button" 
-                          className="remove-feature" 
-                          onClick={() => removeFeature(index)}
-                          disabled={serviceForm.features?.length === 1}
-                        >
-                          <span className="material-symbols-outlined">remove</span>
-                        </button>
-                      </div>
-                    ))}
-                    <button type="button" className="add-feature" onClick={addFeature}>
-                      <span className="material-symbols-outlined">add</span> Добавить особенность
+                      <Minus size={16} />
                     </button>
                   </div>
-                  <div className="form-actions">
-                    <button type="button" className="cancel-button" onClick={resetServiceForm}>Отмена</button>
-                    <button type="submit" className="save-button">Сохранить</button>
-                  </div>
-                </form>
+                ))}
+                <button type="button" className="add-feature" onClick={addFeature}>
+                  <Plus size={16} />
+                  <span>Добавить особенность</span>
+                </button>
               </div>
-            )}
-            
-            {/* Форма создания/редактирования категории */}
-            {showCategoryForm && currentCategory && (
-              <div className="form-container">
-                <h3>{currentCategory ? 'Редактирование категории' : 'Создание новой категории'}</h3>
-                <form onSubmit={saveCategory}>
-                  <div className="form-group">
-                    <label>Название категории:</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={categoryForm.name}
-                      onChange={handleCategoryFormChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Порядок отображения:</label>
-                    <input
-                      type="number"
-                      name="order"
-                      value={categoryForm.order}
-                      onChange={handleCategoryFormChange}
-                      min="0"
-                    />
-                  </div>
-                  <div className="form-actions">
-                    <button type="button" className="cancel-button" onClick={resetCategoryForm}>Отмена</button>
-                    <button type="submit" className="save-button">Сохранить</button>
-                  </div>
-                </form>
+              
+              <div className="form-actions">
+                <button type="button" className="cancel-button" onClick={resetServiceForm}>Отмена</button>
+                <button type="submit" className="save-button" style={{ backgroundColor: "#D04E4E" }}>Сохранить</button>
               </div>
-            )}
-          </>
+            </form>
+          </div>
         )}
+        
+        {showCategoryForm && (
+          <div className="form-container">
+            <h3>{currentCategory ? 'Редактирование категории' : 'Новая категория'}</h3>
+            <form onSubmit={saveCategory}>
+              <div className="form-group">
+                <label>Название категории</label>
+                <input type="text" name="name" value={categoryForm.name} onChange={handleCategoryFormChange} required />
+              </div>
+              
+              <div className="form-group">
+                <label>Порядок отображения</label>
+                <input type="number" name="order" value={categoryForm.order} onChange={handleCategoryFormChange} min="0" />
+              </div>
+              
+              <div className="form-actions">
+                <button type="button" className="cancel-button" onClick={resetCategoryForm}>Отмена</button>
+                <button type="submit" className="save-button" style={{ backgroundColor: "#D04E4E" }}>Сохранить</button>
+              </div>
+            </form>
+          </div>
+        )}
+        
+        <div className="table-container">
+          {activeTab === 'services' && (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Название</th>
+                  <th>Категория</th>
+                  <th>Цена</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {services.map(service => (
+                  <tr key={service.id}>
+                    <td>{service.title}</td>
+                    <td>{getCategoryName(service.categoryId)}</td>
+                    <td>{service.price} {service.currency}</td>
+                    <td className="actions">
+                      <button className="action-button edit" onClick={() => editService(service)} title="Редактировать">
+                        <Edit size={16} color="#4a90e2" />
+                      </button>
+                      <button className="action-button delete" onClick={() => openDeleteConfirmation(service.id, 'service')} title="Удалить">
+                        <Trash2 size={16} color="#D04E4E" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {services.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="no-data">Нет данных</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+          
+          {activeTab === 'categories' && (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Название</th>
+                  <th>Порядок</th>
+                  <th>Кол-во услуг</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map(category => (
+                  <tr key={category.id}>
+                    <td>{category.name}</td>
+                    <td>{category.order}</td>
+                    <td>{services.filter(service => service.categoryId === category.id).length}</td>
+                    <td className="actions">
+                      <button className="action-button edit" onClick={() => editCategory(category)} title="Редактировать">
+                        <Edit size={16} color="#4a90e2" />
+                      </button>
+                      <button className="action-button delete" onClick={() => openDeleteConfirmation(category.id, 'category')} title="Удалить">
+                        <Trash2 size={16} color="#D04E4E" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {categories.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="no-data">Нет данных</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+      
+      {/* Модальное окно подтверждения удаления */}
+      {showDeleteConfirmation && itemToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '450px' }}>
+            <div className="modal-header">
+              <h2>Подтверждение удаления</h2>
+              <button className="close-button" onClick={closeDeleteConfirmation}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="confirmation-content">
+                <div className="confirmation-icon">
+                  <AlertTriangle size={40} color="#D04E4E" />
+                </div>
+                <div className="confirmation-message">
+                  <p>Вы действительно хотите удалить {itemToDelete.type === 'service' ? 'услугу' : 'категорию'} 
+                  <strong> "{itemToDelete.name}"</strong>?</p>
+                  
+                  {itemToDelete.type === 'category' && (
+                    <p className="warning-text">Внимание! Это может повлиять на связанные услуги.</p>
+                  )}
+                  
+                  <p>Это действие невозможно отменить.</p>
+                </div>
+              </div>
+              
+              <div className="confirmation-actions">
+                <button 
+                  className="cancel-button" 
+                  onClick={closeDeleteConfirmation}
+                >
+                  Отмена
+                </button>
+                <button 
+                  className="delete-button" 
+                  onClick={confirmDelete}
+                  style={{ backgroundColor: "#D04E4E" }}
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Уведомления */}
+      <div className="notifications-container">
+        {notifications.map(notification => (
+          <div key={notification.id} className={`notification ${notification.type}`}>
+            <div className="notification-icon">
+              {getNotificationIcon(notification.type)}
+            </div>
+            <div className="notification-message">{notification.message}</div>
+            <button 
+              className="notification-close" 
+              onClick={() => removeNotification(notification.id)}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

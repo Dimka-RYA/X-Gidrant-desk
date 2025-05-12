@@ -1,7 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 .employees-page {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .page-header {
@@ -21,7 +24,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #D04E4E;
+  background-color: #D04E4E !important;
   color: white;
   border: none;
   border-radius: 4px;
@@ -29,10 +32,11 @@
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .add-button:hover {
-  background-color: #b83c3c;
+  background-color: #b83c3c !important;
 }
 
 .table-container {
@@ -140,10 +144,23 @@
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  box-shadow: none;
+  outline: none;
+  position: relative;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  transition: color 0.3s;
 }
 
 .modal-close:hover {
   color: #D04E4E;
+  background: transparent !important;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Выбор типа сотрудника */
@@ -397,4 +414,133 @@ body.resizing .employees-table {
   white-space: nowrap;     /* Предотвращаем перенос текста в ячейках */
   overflow: hidden;        /* Обрезаем содержимое, выходящее за границы */
   text-overflow: ellipsis; /* Добавляем многоточие для обрезанного текста */
+}
+
+/* Стили для модального окна удаления */
+.delete-confirm-modal {
+  max-width: 400px;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body p {
+  margin: 0 0 12px;
+  color: #444;
+}
+
+.modal-body p:last-child {
+  margin-bottom: 0;
+  color: #666;
+  font-size: 13px;
+}
+
+.modal-footer {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #eee;
+}
+
+.delete-button {
+  padding: 10px 15px;
+  background-color: #D04E4E;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #b83c3c;
+}
+
+/* Стили для ячеек */
+.cell-content {
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-height: 20px;
+}
+
+.cell-content.editable {
+  cursor: pointer;
+}
+
+.cell-content.editable:hover {
+  background-color: rgba(208, 78, 78, 0.08);
+}
+
+/* Стили для поля ввода при редактировании */
+.cell-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #D04E4E;
+  border-radius: 4px;
+  background-color: white;
+  color: #333;
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 0 8px rgba(208, 78, 78, 0.15);
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Уведомление */
+.notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #383636;
+  color: white;
+  border-radius: 8px;
+  padding: 14px 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  max-width: 400px;
+  z-index: 1000;
+  animation: notificationSlideIn 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
+}
+
+@keyframes notificationSlideIn {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.notification-close {
+  margin-left: 12px;
+  background: none !important;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 0 0 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  line-height: 1;
+  transition: color 0.3s;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+  text-shadow: none !important;
+}
+
+.notification-close:hover,
+.notification-close:focus,
+.notification-close:active {
+  color: rgba(255, 255, 255, 0.8);
+  background: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-color: rgba(255, 255, 255, 0.2);
 } 
