@@ -109,10 +109,10 @@ const Employees: React.FC = () => {
         const data = doc.data();
         employeesList.push({
           id: doc.id,
-          name: data.name || 'Не указано',
-          position: data.position || 'Не указано',
-          phone: data.phone || 'Не указано',
-          email: data.email || 'Не указано',
+          name: data.name || '',
+          position: data.position || '',
+          phone: data.phone || '',
+          email: data.email || '',
           role: data.role === 'engineer' ? 'Инженер' : 'Диспетчер'
         });
       });

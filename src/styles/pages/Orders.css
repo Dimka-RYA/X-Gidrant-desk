@@ -2,9 +2,10 @@
 
 /* Основные стили для страницы заказов в админ-панели */
 .admin-orders-page {
-  padding: 24px;
+  padding: 12px;
   background-color: #f9f9f9;
-  min-height: 100vh;
+  border-radius: 12px;
+  min-height: 10vh;
   font-family: 'Montserrat', sans-serif;
 }
 
@@ -73,7 +74,7 @@
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   overflow: auto;
-  max-height: calc(100vh - 150px);
+  max-height: calc(90vh - 200px);
 }
 
 .orders-table {

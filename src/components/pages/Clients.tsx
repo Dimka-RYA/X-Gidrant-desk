@@ -396,14 +396,14 @@ const Clients: React.FC = () => {
                         title="Редактировать"
                       >
                         <EditIcon />
-                      </button>
+                    </button>
                       <button 
                         className="action-button delete"
                         onClick={() => handleDeleteClick(client.id)}
                         title="Удалить"
                       >
                         <DeleteIcon />
-                      </button>
+                    </button>
                     </div>
                   </td>
                 </tr>

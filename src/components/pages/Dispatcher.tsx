@@ -121,6 +121,9 @@ const Dispatcher: React.FC = () => {
     canceledOrders: 0,
     averageOrderCost: 0
   });
+  // Добавляем состояние для окна подтверждения удаления
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
   // Функция для получения имени пользователя по ID
   const fetchUserName = async (userId: string) => {
@@ -509,10 +512,6 @@ const Dispatcher: React.FC = () => {
 
   // Обработчик удаления заказа
   const handleDeleteOrder = async (orderId: string) => {
-    if (!window.confirm('Вы уверены, что хотите удалить этот заказ?')) {
-      return;
-    }
-    
     try {
       await deleteDoc(doc(db, 'orders', orderId));
       setNotification('Заказ успешно удален');
@@ -522,10 +521,20 @@ const Dispatcher: React.FC = () => {
         setSelectedOrder(null);
         setIsDetailsModalOpen(false);
       }
+      
+      // Закрываем модальное окно подтверждения удаления
+      setDeleteConfirmationOpen(false);
+      setOrderToDelete(null);
     } catch (err) {
       console.error('Ошибка при удалении заказа:', err);
       setNotification('Ошибка при удалении заказа');
     }
+  };
+  
+  // Функция для открытия диалога подтверждения удаления
+  const openDeleteConfirmation = (orderId: string) => {
+    setOrderToDelete(orderId);
+    setDeleteConfirmationOpen(true);
   };
 
   // Открытие деталей заказа
@@ -661,7 +670,7 @@ const Dispatcher: React.FC = () => {
         </div>
       </div>
 
-      {/* Интерактивная панель с вкладками */}
+      {/* Интерактивная панель с вкладками - обновляем стили */}
       <div className="interactive-dashboard">
         <div className="dashboard-tabs">
           <div 
@@ -700,39 +709,127 @@ const Dispatcher: React.FC = () => {
           
           {activeTab === 'статистика' && (
             <div className="stats-section">
-              <h3>Статистика заказов</h3>
+              <h3>Общая статистика заказов</h3>
               <div className="stats-cards">
                 <div className="stats-card">
+                  <div className="stats-icon total-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M16 4H18C18.5304 4 19.0391 4.21071 19.4142 4.58579C19.7893 4.96086 20 5.46957 20 6V20C20 20.5304 19.7893 21.0391 19.4142 21.4142C19.0391 21.7893 18.5304 22 18 22H6C5.46957 22 4.96086 21.7893 4.58579 21.4142C4.21071 21.0391 4 20.5304 4 20V6C4 5.46957 4.21071 4.96086 4.58579 4.58579C4.96086 4.21071 5.46957 4 6 4H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M15 2H9C8.44772 2 8 2.44772 8 3V5C8 5.55228 8.44772 6 9 6H15C15.5523 6 16 5.55228 16 5V3C16 2.44772 15.5523 2 15 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M12 11H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M12 16H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M8 11H8.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M8 16H8.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <div className="stats-card-title">Всего заказов</div>
                   <div className="stats-card-value">{statsData.totalOrders}</div>
+                  <div className="stats-card-subtitle">за всё время</div>
                 </div>
                 <div className="stats-card">
+                  <div className="stats-icon new-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 5V19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <div className="stats-card-title">Новые заказы</div>
                   <div className="stats-card-value">{statsData.newOrders}</div>
+                  <div className="stats-card-subtitle">требуют назначения</div>
                 </div>
                 <div className="stats-card">
+                  <div className="stats-icon progress-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <div className="stats-card-title">В работе</div>
                   <div className="stats-card-value">{statsData.inProgressOrders}</div>
+                  <div className="stats-card-subtitle">сейчас выполняются</div>
                 </div>
                 <div className="stats-card">
+                  <div className="stats-icon completed-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <div className="stats-card-title">Выполненные</div>
                   <div className="stats-card-value">{statsData.completedOrders}</div>
+                  <div className="stats-card-subtitle">успешно завершены</div>
                 </div>
                 <div className="stats-card">
+                  <div className="stats-icon canceled-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <div className="stats-card-title">Отмененные</div>
                   <div className="stats-card-value">{statsData.canceledOrders}</div>
+                  <div className="stats-card-subtitle">отменены клиентами</div>
                 </div>
                 <div className="stats-card">
+                  <div className="stats-icon money-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 1V23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                   <div className="stats-card-title">Средняя стоимость</div>
                   <div className="stats-card-value">{statsData.averageOrderCost} ₽</div>
+                  <div className="stats-card-subtitle">за один заказ</div>
+                </div>
+              </div>
+              
+              <div className="stats-charts-container">
+                <div className="stats-chart-box">
+                  <h3>Статистика по статусам заказов</h3>
+                  <div className="status-chart">
+                    <div className="chart-legend">
+                      <div className="legend-item">
+                        <div className="legend-color" style={{ backgroundColor: 'rgba(79, 129, 254, 0.7)' }}></div>
+                        <div className="legend-label">Новые</div>
+                        <div className="legend-value">{statsData.newOrders}</div>
+                      </div>
+                      <div className="legend-item">
+                        <div className="legend-color" style={{ backgroundColor: 'rgba(255, 153, 0, 0.7)' }}></div>
+                        <div className="legend-label">В работе</div>
+                        <div className="legend-value">{statsData.inProgressOrders}</div>
+                      </div>
+                      <div className="legend-item">
+                        <div className="legend-color" style={{ backgroundColor: 'rgba(82, 196, 26, 0.7)' }}></div>
+                        <div className="legend-label">Выполненные</div>
+                        <div className="legend-value">{statsData.completedOrders}</div>
+                      </div>
+                      <div className="legend-item">
+                        <div className="legend-color" style={{ backgroundColor: 'rgba(245, 34, 45, 0.7)' }}></div>
+                        <div className="legend-label">Отменённые</div>
+                        <div className="legend-value">{statsData.canceledOrders}</div>
+                      </div>
+                    </div>
+                    <div className="chart-visual">
+                      <div className="status-bar-chart">
+                        {statsData.totalOrders > 0 && (
+                          <>
+                            <div className="status-bar new-bar" style={{ width: `${(statsData.newOrders / statsData.totalOrders) * 100}%` }}></div>
+                            <div className="status-bar progress-bar" style={{ width: `${(statsData.inProgressOrders / statsData.totalOrders) * 100}%` }}></div>
+                            <div className="status-bar completed-bar" style={{ width: `${(statsData.completedOrders / statsData.totalOrders) * 100}%` }}></div>
+                            <div className="status-bar canceled-bar" style={{ width: `${(statsData.canceledOrders / statsData.totalOrders) * 100}%` }}></div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
               <h3>Активные исполнители</h3>
-              <div className="employee-stats">
-                {employees.length === 0 ? (
-                  <p>Нет активных исполнителей</p>
-                ) : (
+              {employees.length === 0 ? (
+                <p>Нет активных исполнителей</p>
+              ) : (
+                <div className="employee-stats">
                   <div className="employee-list">
                     {employees.map(employee => (
                       <div key={employee.id} className="employee-card">
@@ -746,14 +843,26 @@ const Dispatcher: React.FC = () => {
                           <div className="employee-name">{employee.name}</div>
                           <div className="employee-contact">{employee.phone || employee.email}</div>
                           <div className="employee-workload">
-                            Активных заказов: <span className={(employee.currentOrders ?? 0) > 2 ? 'high-load' : ''}>{employee.currentOrders ?? 0}</span>
+                            <span className="workload-label">Активных заказов:</span> 
+                            <span className={`workload-value ${(employee.currentOrders ?? 0) > 2 ? 'high-load' : ''}`}>
+                              {employee.currentOrders ?? 0}
+                            </span>
                           </div>
+                          {employee.currentLocation && (
+                            <div className="employee-location">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <circle cx="12" cy="10" r="3" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              <span>На карте</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
           
@@ -830,7 +939,7 @@ const Dispatcher: React.FC = () => {
                             </button>
                             <button 
                               className="action-button delete"
-                              onClick={() => handleDeleteOrder(order.id)}
+                              onClick={() => openDeleteConfirmation(order.id)}
                               title="Удалить заказ"
                             >
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1147,6 +1256,56 @@ const Dispatcher: React.FC = () => {
               )}
             </div>
             {isAssigningOrder && <div className="modal-footer"><button className="save-button" onClick={handleAssignOrder}>Назначить</button></div>}
+          </div>
+        </div>
+      )}
+      
+      {/* Модальное окно подтверждения удаления */}
+      {deleteConfirmationOpen && orderToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-confirm">
+            <div className="modal-header">
+              <h2>Подтверждение удаления</h2>
+              <button 
+                className="close-button" 
+                onClick={() => {
+                  setDeleteConfirmationOpen(false);
+                  setOrderToDelete(null);
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="confirm-delete-content">
+                <div className="confirm-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#d32f2f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 8V12" stroke="#d32f2f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="16" r="0.5" stroke="#d32f2f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p className="confirm-message">Вы уверены, что хотите удалить этот заказ?</p>
+                <p className="confirm-warning">Это действие нельзя будет отменить.</p>
+              </div>
+              <div className="confirm-actions">
+                <button 
+                  className="cancel-button" 
+                  onClick={() => {
+                    setDeleteConfirmationOpen(false);
+                    setOrderToDelete(null);
+                  }}
+                >
+                  Отмена
+                </button>
+                <button 
+                  className="delete-confirm-button" 
+                  onClick={() => handleDeleteOrder(orderToDelete)}
+                >
+                  Удалить
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

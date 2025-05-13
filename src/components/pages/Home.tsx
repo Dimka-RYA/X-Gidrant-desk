@@ -542,19 +542,19 @@ const Home: React.FC = () => {
           <h3>Количество заказов</h3>
           <div className="period-filters">
             <button 
-              className={orderPeriod === 'day' ? 'active' : ''} 
+              className={`period-filter-button ${orderPeriod === 'day' ? 'active' : ''}`}
               onClick={() => setOrderPeriod('day')}
             >
               День
             </button>
             <button 
-              className={orderPeriod === 'week' ? 'active' : ''} 
+              className={`period-filter-button ${orderPeriod === 'week' ? 'active' : ''}`}
               onClick={() => setOrderPeriod('week')}
             >
               Неделя
             </button>
             <button 
-              className={orderPeriod === 'month' ? 'active' : ''} 
+              className={`period-filter-button ${orderPeriod === 'month' ? 'active' : ''}`}
               onClick={() => setOrderPeriod('month')}
             >
               Месяц
@@ -572,19 +572,19 @@ const Home: React.FC = () => {
           <h3>Прибыль</h3>
           <div className="period-filters">
             <button 
-              className={incomePeriod === 'day' ? 'active' : ''} 
+              className={`period-filter-button ${incomePeriod === 'day' ? 'active' : ''}`}
               onClick={() => setIncomePeriod('day')}
             >
               День
             </button>
             <button 
-              className={incomePeriod === 'week' ? 'active' : ''} 
+              className={`period-filter-button ${incomePeriod === 'week' ? 'active' : ''}`}
               onClick={() => setIncomePeriod('week')}
             >
               Неделя
             </button>
             <button 
-              className={incomePeriod === 'month' ? 'active' : ''} 
+              className={`period-filter-button ${incomePeriod === 'month' ? 'active' : ''}`}
               onClick={() => setIncomePeriod('month')}
             >
               Месяц
@@ -602,19 +602,19 @@ const Home: React.FC = () => {
           <h3>Активность сотрудников</h3>
           <div className="period-filters">
             <button 
-              className={activityPeriod === 'day' ? 'active' : ''} 
+              className={`period-filter-button ${activityPeriod === 'day' ? 'active' : ''}`}
               onClick={() => setActivityPeriod('day')}
             >
               День
             </button>
             <button 
-              className={activityPeriod === 'week' ? 'active' : ''} 
+              className={`period-filter-button ${activityPeriod === 'week' ? 'active' : ''}`}
               onClick={() => setActivityPeriod('week')}
             >
               Неделя
             </button>
             <button 
-              className={activityPeriod === 'month' ? 'active' : ''} 
+              className={`period-filter-button ${activityPeriod === 'month' ? 'active' : ''}`}
               onClick={() => setActivityPeriod('month')}
             >
               Месяц

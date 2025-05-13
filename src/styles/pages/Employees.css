@@ -1,10 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
+/* Применение шрифта ко всем элементам */
+* {
+  font-family: 'Montserrat', sans-serif;
+}
+
 .employees-page {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  font-family: 'Montserrat', sans-serif;
 }
 
 .page-header {
@@ -32,7 +36,6 @@
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
-  font-family: 'Montserrat', sans-serif;
 }
 
 .add-button:hover {
@@ -486,7 +489,6 @@ body.resizing .employees-table {
   font-size: 14px;
   outline: none;
   box-shadow: 0 0 8px rgba(208, 78, 78, 0.15);
-  font-family: 'Montserrat', sans-serif;
 }
 
 /* Уведомление */
@@ -504,7 +506,6 @@ body.resizing .employees-table {
   max-width: 400px;
   z-index: 1000;
   animation: notificationSlideIn 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
 }
 
 @keyframes notificationSlideIn {

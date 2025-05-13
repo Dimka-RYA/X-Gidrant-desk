@@ -324,10 +324,10 @@ const Income: React.FC = () => {
   const handleFeatureChange = (index: number, value: string) => {
     setServiceForm(prev => {
       const updatedFeatures = [...(prev.features || [])];
-      updatedFeatures[index] = value;
+    updatedFeatures[index] = value;
       return {
         ...prev,
-        features: updatedFeatures
+      features: updatedFeatures
       };
     });
   };
@@ -342,10 +342,10 @@ const Income: React.FC = () => {
   const removeFeature = (index: number) => {
     setServiceForm(prev => {
       const updatedFeatures = [...(prev.features || [])];
-      updatedFeatures.splice(index, 1);
+    updatedFeatures.splice(index, 1);
       return {
         ...prev,
-        features: updatedFeatures
+      features: updatedFeatures
       };
     });
   };
@@ -367,7 +367,7 @@ const Income: React.FC = () => {
         ...serviceForm,
         features: serviceForm.features?.filter(f => f.trim() !== '')
       };
-      
+
       if (currentService) {
         // Обновление существующей услуги
         await setDoc(doc(db, 'services', currentService.id), serviceData);
@@ -391,7 +391,7 @@ const Income: React.FC = () => {
   // Сохранение категории
   const saveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (currentCategory) {
         // Обновление существующей категории
@@ -451,7 +451,7 @@ const Income: React.FC = () => {
       setShowDeleteConfirmation(false);
       setItemToDelete(null);
       loadData();
-    } catch (error) {
+      } catch (error) {
       console.error(`Ошибка при удалении ${itemToDelete.type === 'service' ? 'услуги' : 'категории'}:`, error);
       showNotification('error', 'Ошибка при удалении');
     }
@@ -546,15 +546,15 @@ const Income: React.FC = () => {
         id: doc.id,
         ...doc.data()
       } as FirestoreOrder));
-
+      
       // Создаем маппинг услуг к их категориям
       const serviceToCategory = new Map<string, string>();
       servicesData.forEach(service => {
         if (service.categoryId) {
-          serviceToCategory.set(service.title, service.categoryId);
+        serviceToCategory.set(service.title, service.categoryId);
         }
       });
-
+      
       // Рассчитываем доходы по категориям
       const categoryRevenue: Record<string, number> = {};
       
@@ -696,75 +696,75 @@ const Income: React.FC = () => {
           </div>
         </div>
         
-        <div className="tabs">
+            <div className="tabs">
           <div 
             className={`tab ${activeTab === 'services' ? 'active' : ''}`}
             onClick={() => setActiveTab('services')}
           >
-            Услуги
-          </div>
+                Услуги
+              </div>
           <div 
             className={`tab ${activeTab === 'categories' ? 'active' : ''}`}
             onClick={() => setActiveTab('categories')}
           >
-            Категории
-          </div>
-        </div>
-        
+                Категории
+              </div>
+            </div>
+            
         {showServiceForm && (
-          <div className="form-container">
+              <div className="form-container">
             <h3>{currentService ? 'Редактирование услуги' : 'Новая услуга'}</h3>
-            <form onSubmit={saveService}>
-              <div className="form-group">
+                <form onSubmit={saveService}>
+                  <div className="form-group">
                 <label>Название услуги</label>
                 <input type="text" name="title" value={serviceForm.title} onChange={handleServiceFormChange} required />
-              </div>
+                  </div>
               
-              <div className="form-group price-group">
+                  <div className="form-group price-group">
                 <label>Цена</label>
                 <div className="price-inputs">
-                  <input 
-                    type="number" 
-                    name="price" 
-                    value={serviceForm.price} 
-                    onChange={handleServiceFormChange} 
-                    min="0" 
+                    <input
+                      type="number"
+                      name="price"
+                      value={serviceForm.price}
+                      onChange={handleServiceFormChange}
+                      min="0"
                     required 
-                  />
-                  <input 
-                    type="text" 
-                    name="currency" 
-                    value={serviceForm.currency} 
-                    onChange={handleServiceFormChange} 
-                    className="currency-input" 
+                    />
+                    <input
+                      type="text"
+                      name="currency"
+                      value={serviceForm.currency}
+                      onChange={handleServiceFormChange}
+                      className="currency-input"
                     required 
-                  />
-                </div>
+                    />
+                  </div>
               </div>
               
-              <div className="form-group">
+                  <div className="form-group">
                 <label>Скидка (%)</label>
-                <input 
-                  type="number" 
-                  name="discount" 
+                    <input
+                      type="number"
+                      name="discount"
                   value={serviceForm.discount} 
-                  onChange={handleServiceFormChange} 
-                  min="0" 
-                  max="100" 
-                />
-              </div>
+                      onChange={handleServiceFormChange}
+                      min="0"
+                      max="100"
+                    />
+                  </div>
               
-              <div className="form-group">
+                  <div className="form-group">
                 <label>Описание</label>
-                <textarea 
-                  name="description" 
+                    <textarea
+                      name="description"
                   value={serviceForm.description} 
-                  onChange={handleServiceFormChange} 
+                      onChange={handleServiceFormChange}
                   rows={3}
-                ></textarea>
-              </div>
+                    ></textarea>
+                  </div>
               
-              <div className="form-group">
+                  <div className="form-group">
                 <label>Категория</label>
                 <select 
                   name="categoryId" 
@@ -780,59 +780,59 @@ const Income: React.FC = () => {
               
               <div className="form-group">
                 <label>Особенности</label>
-                {serviceForm.features && serviceForm.features.map((feature, index) => (
+                    {serviceForm.features && serviceForm.features.map((feature, index) => (
                   <div className="feature-input" key={index}>
-                    <input 
-                      type="text" 
-                      value={feature} 
-                      onChange={(e) => handleFeatureChange(index, e.target.value)} 
-                      placeholder="Особенность услуги"
-                    />
-                    <button 
-                      type="button" 
-                      className="remove-feature" 
-                      onClick={() => removeFeature(index)}
-                      disabled={serviceForm.features?.length === 1}
-                    >
+                        <input
+                          type="text"
+                          value={feature}
+                          onChange={(e) => handleFeatureChange(index, e.target.value)}
+                          placeholder="Особенность услуги"
+                        />
+                        <button 
+                          type="button" 
+                          className="remove-feature" 
+                          onClick={() => removeFeature(index)}
+                          disabled={serviceForm.features?.length === 1}
+                        >
                       <Minus size={16} />
-                    </button>
-                  </div>
-                ))}
-                <button type="button" className="add-feature" onClick={addFeature}>
+                        </button>
+                      </div>
+                    ))}
+                    <button type="button" className="add-feature" onClick={addFeature}>
                   <Plus size={16} />
                   <span>Добавить особенность</span>
-                </button>
-              </div>
+                    </button>
+                  </div>
               
-              <div className="form-actions">
-                <button type="button" className="cancel-button" onClick={resetServiceForm}>Отмена</button>
+                  <div className="form-actions">
+                    <button type="button" className="cancel-button" onClick={resetServiceForm}>Отмена</button>
                 <button type="submit" className="save-button" style={{ backgroundColor: "#D04E4E" }}>Сохранить</button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        )}
-        
+            )}
+            
         {showCategoryForm && (
-          <div className="form-container">
+              <div className="form-container">
             <h3>{currentCategory ? 'Редактирование категории' : 'Новая категория'}</h3>
-            <form onSubmit={saveCategory}>
-              <div className="form-group">
+                <form onSubmit={saveCategory}>
+                  <div className="form-group">
                 <label>Название категории</label>
                 <input type="text" name="name" value={categoryForm.name} onChange={handleCategoryFormChange} required />
-              </div>
+                  </div>
               
-              <div className="form-group">
+                  <div className="form-group">
                 <label>Порядок отображения</label>
                 <input type="number" name="order" value={categoryForm.order} onChange={handleCategoryFormChange} min="0" />
-              </div>
+                  </div>
               
-              <div className="form-actions">
-                <button type="button" className="cancel-button" onClick={resetCategoryForm}>Отмена</button>
+                  <div className="form-actions">
+                    <button type="button" className="cancel-button" onClick={resetCategoryForm}>Отмена</button>
                 <button type="submit" className="save-button" style={{ backgroundColor: "#D04E4E" }}>Сохранить</button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        )}
+            )}
         
         <div className="table-container">
           {activeTab === 'services' && (

@@ -367,34 +367,29 @@ tr:last-child td {
 
 .period-filters {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.period-filters button {
-  background-color: #D04E4E;
-  color: white;
+.period-filter-button {
+  padding: 8px 16px;
+  background-color: #f0f0f0;
   border: none;
   border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: 'Montserrat', sans-serif;
   font-weight: 500;
+  transition: all 0.3s ease;
+  color: #444;
+  font-family: 'Montserrat', sans-serif;
 }
 
-.period-filters button:hover {
-  background-color: #b83b3b;
+.period-filter-button:hover {
+  background-color: rgba(208, 78, 78, 0.1);
 }
 
-.period-filters button.active {
-  background-color: #a03939;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  position: relative;
-}
-
-.period-filters button.active::after {
-  display: none;
+.period-filter-button.active {
+  background-color: #D04E4E;
+  color: white;
 }
 
 .chart-container {
