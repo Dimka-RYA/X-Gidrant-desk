@@ -94,20 +94,20 @@ const Sidebar = ({ onLogout, onChangeTab, activeTab = 'главная' }: Sideba
           <span className={activeItem === 'главная' ? 'active-text' : ''}>Главная</span>
         </div>
         
-        {/* Пункт меню "Диспетчер" - показывается только для роли диспетчера */}
+        {/* Пункт меню "" - показывается только для роли а */}
         {userRole === 'dispatcher' && (
           <div 
-            className={`menu-item ${activeItem === 'диспетчер' ? 'active' : ''}`}
-            onClick={() => handleItemClick('диспетчер')}
+            className={`menu-item ${activeItem === '' ? 'active' : ''}`}
+            onClick={() => handleItemClick('')}
           >
             <div className="menu-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 16V8C20.9996 7.4736 20.7203 6.97884 20.25 6.69L13.25 2.69C12.7793 2.40116 12.2207 2.40116 11.75 2.69L4.75 6.69C4.2797 6.97884 4.00037 7.4736 4 8V16C4.00037 16.5264 4.2797 17.0212 4.75 17.31L11.75 21.31C12.2207 21.5988 12.7793 21.5988 13.25 21.31L20.25 17.31C20.7203 17.0212 20.9996 16.5264 21 16Z" stroke={activeItem === 'диспетчер' ? '#D04E4E' : 'white'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M4.5 7.5L12 12L19.5 7.5" stroke={activeItem === 'диспетчер' ? '#D04E4E' : 'white'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 22V12" stroke={activeItem === 'диспетчер' ? '#D04E4E' : 'white'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M21 16V8C20.9996 7.4736 20.7203 6.97884 20.25 6.69L13.25 2.69C12.7793 2.40116 12.2207 2.40116 11.75 2.69L4.75 6.69C4.2797 6.97884 4.00037 7.4736 4 8V16C4.00037 16.5264 4.2797 17.0212 4.75 17.31L11.75 21.31C12.2207 21.5988 12.7793 21.5988 13.25 21.31L20.25 17.31C20.7203 17.0212 20.9996 16.5264 21 16Z" stroke={activeItem === '' ? '#D04E4E' : 'white'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M4.5 7.5L12 12L19.5 7.5" stroke={activeItem === '' ? '#D04E4E' : 'white'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 22V12" stroke={activeItem === '' ? '#D04E4E' : 'white'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className={activeItem === 'диспетчер' ? 'active-text' : ''}>Диспетчер</span>
+            <span className={activeItem === '' ? 'active-text' : ''}></span>
           </div>
         )}
         
@@ -180,7 +180,7 @@ const Sidebar = ({ onLogout, onChangeTab, activeTab = 'главная' }: Sideba
             </svg>
           </div>
           <span className="user-name">{username}</span>
-          <div className="user-role">Диспетчер</div>
+          <div className="user-role"></div>
           <button className="logout-button" onClick={handleLogout} title="Выйти">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

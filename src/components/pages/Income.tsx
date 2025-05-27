@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, doc, setDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, deleteDoc, query, where, orderBy, limit, getDoc } from 'firebase/firestore';
 import { db } from '../../assets/firebase';
 import '../../styles/pages/Income.css';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, Title } from 'chart.js';
@@ -127,19 +127,29 @@ const Income: React.FC = () => {
         // Загружаем услуги
         const servicesQuery = query(collection(db, 'services'));
         const servicesSnapshot = await getDocs(servicesQuery);
-        const servicesData = servicesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as Service));
+        const servicesData = servicesSnapshot.docs.map(doc => {
+          console.log(`Service document:`, doc.id, doc.data());
+          return {
+            id: doc.id,
+            ...doc.data()
+          } as Service;
+        });
+        console.log('Loaded services:', servicesData);
         setServices(servicesData);
 
         // Загружаем категории услуг
-        const categoriesQuery = query(collection(db, 'service_categories'));
+        const categoriesQuery = query(collection(db, 'service_categories'), orderBy('order'));
         const categoriesSnapshot = await getDocs(categoriesQuery);
-        const categoriesData = categoriesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as ServiceCategory));
+        const categoriesData = categoriesSnapshot.docs.map(doc => {
+          // Убедимся, что ID документа корректно присваивается
+          console.log(`Загружаем категорию: ID=${doc.id}, данные=`, doc.data());
+          const categoryData = doc.data();
+          return {
+            ...categoryData,
+            id: doc.id  // Явно присваиваем ID документа
+          } as ServiceCategory;
+        });
+        console.log('Загруженные категории:', categoriesData);
         setCategories(categoriesData);
 
         // Загружаем заказы
@@ -363,18 +373,26 @@ const Income: React.FC = () => {
     e.preventDefault();
     
     try {
+      // Подготавливаем данные услуги (без ID)
+      const { id, ...serviceDataWithoutId } = serviceForm;
+      
+      // Фильтруем пустые особенности
       const serviceData = {
-        ...serviceForm,
+        ...serviceDataWithoutId,
         features: serviceForm.features?.filter(f => f.trim() !== '')
       };
+      
+      console.log('Сохранение услуги:', { id, serviceData });
 
       if (currentService) {
         // Обновление существующей услуги
+        console.log(`Обновляем услугу с ID: ${currentService.id}`);
         await setDoc(doc(db, 'services', currentService.id), serviceData);
         showNotification('success', `Услуга "${serviceData.title}" обновлена`);
       } else {
         // Создание новой услуги
         const newServiceRef = doc(collection(db, 'services'));
+        console.log(`Создаем новую услугу с ID: ${newServiceRef.id}`);
         await setDoc(newServiceRef, serviceData);
         showNotification('success', `Услуга "${serviceData.title}" добавлена`);
       }
@@ -393,14 +411,21 @@ const Income: React.FC = () => {
     e.preventDefault();
 
     try {
+      // Подготавливаем данные категории (без ID)
+      const { id, ...categoryDataWithoutId } = categoryForm;
+      
+      console.log('Сохранение категории:', { id, categoryData: categoryDataWithoutId });
+
       if (currentCategory) {
         // Обновление существующей категории
-        await setDoc(doc(db, 'service_categories', currentCategory.id), categoryForm);
+        console.log(`Обновляем категорию с ID: ${currentCategory.id}`);
+        await setDoc(doc(db, 'service_categories', currentCategory.id), categoryDataWithoutId);
         showNotification('success', `Категория "${categoryForm.name}" обновлена`);
       } else {
         // Создание новой категории
         const newCategoryRef = doc(collection(db, 'service_categories'));
-        await setDoc(newCategoryRef, categoryForm);
+        console.log(`Создаем новую категорию с ID: ${newCategoryRef.id}`);
+        await setDoc(newCategoryRef, categoryDataWithoutId);
         showNotification('success', `Категория "${categoryForm.name}" добавлена`);
       }
       
@@ -415,17 +440,58 @@ const Income: React.FC = () => {
 
   // Открытие модального окна удаления
   const openDeleteConfirmation = (id: string, type: 'service' | 'category') => {
-    const item = type === 'service' 
-      ? services.find(service => service.id === id)
-      : categories.find(category => category.id === id);
+    console.log(`openDeleteConfirmation: тип=${type}, id=${id}, typeof id=${typeof id}`);
     
-    if (item) {
-      setItemToDelete({
-        id,
-        type,
-        name: 'title' in item ? item.title : item.name
-      });
+    // Проверка на пустой ID
+    if (!id) {
+      console.error(`ID пустой или undefined: ${id}`);
+      showNotification('error', `Невозможно удалить ${type === 'service' ? 'услугу' : 'категорию'}: ID не указан`);
+      return;
+    }
+    
+    // Найти элемент для удаления
+    let itemToDelete: { id: string; type: 'service' | 'category'; name: string } | null = null;
+    
+    if (type === 'service') {
+      // Выводим все услуги для отладки
+      console.log("Все услуги:", services);
+      
+      // Ищем услугу по ID
+      const serviceToDelete = services.find(s => s.id === id);
+      console.log("Найденная услуга:", serviceToDelete);
+      
+      if (serviceToDelete) {
+        itemToDelete = {
+          id: id,
+          type: 'service',
+          name: serviceToDelete.title || 'Без названия'
+        };
+      }
+    } else {
+      // Выводим все категории для отладки
+      console.log("Все категории:", categories);
+      
+      // Ищем категорию по ID
+      const categoryToDelete = categories.find(c => c.id === id);
+      console.log("Найденная категория:", categoryToDelete);
+      
+      if (categoryToDelete) {
+        itemToDelete = {
+          id: id,
+          type: 'category',
+          name: categoryToDelete.name || 'Без названия'
+        };
+      }
+    }
+    
+    // Проверяем, найден ли элемент
+    if (itemToDelete) {
+      console.log("Элемент для удаления:", itemToDelete);
+      setItemToDelete(itemToDelete);
       setShowDeleteConfirmation(true);
+    } else {
+      console.error(`Элемент с id=${id} и типом=${type} не найден`);
+      showNotification('error', `${type === 'service' ? 'Услуга' : 'Категория'} не найдена`);
     }
   };
   
@@ -437,23 +503,43 @@ const Income: React.FC = () => {
 
   // Выполнение удаления
   const confirmDelete = async () => {
-    if (!itemToDelete) return;
+    if (!itemToDelete) {
+      console.error('itemToDelete отсутствует');
+      return;
+    }
     
     try {
-      if (itemToDelete.type === 'service') {
-        await deleteDoc(doc(db, 'services', itemToDelete.id));
-        showNotification('success', `Услуга "${itemToDelete.name}" удалена`);
-      } else {
-        await deleteDoc(doc(db, 'service_categories', itemToDelete.id));
-        showNotification('success', `Категория "${itemToDelete.name}" удалена`);
+      const { id, type } = itemToDelete;
+      console.log(`Удаление: тип=${type}, id=${id}`);
+      
+      // Проверка ID
+      if (!id) {
+        throw new Error('ID документа не может быть пустым');
       }
       
+      // Определение коллекции
+      const collectionName = type === 'service' ? 'services' : 'service_categories';
+      console.log(`Коллекция: ${collectionName}, ID: ${id}`);
+      
+      // Удаление документа
+      await deleteDoc(doc(db, collectionName, id));
+      console.log('Документ успешно удален');
+      
+      // Уведомление об успешном удалении
+      showNotification(
+        'success', 
+        `${type === 'service' ? 'Услуга' : 'Категория'} "${itemToDelete.name}" удалена`
+      );
+      
+      // Закрытие модального окна
       setShowDeleteConfirmation(false);
       setItemToDelete(null);
+      
+      // Обновление данных
       loadData();
-      } catch (error) {
-      console.error(`Ошибка при удалении ${itemToDelete.type === 'service' ? 'услуги' : 'категории'}:`, error);
-      showNotification('error', 'Ошибка при удалении');
+    } catch (error) {
+      console.error('Ошибка при удалении:', error);
+      showNotification('error', `Ошибка при удалении: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     }
   };
 
@@ -522,92 +608,124 @@ const Income: React.FC = () => {
     setIsLoading(true);
     try {
       // Загружаем услуги
-      const servicesQuery = query(collection(db, 'services'));
-      const servicesSnapshot = await getDocs(servicesQuery);
-      const servicesData = servicesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Service));
-      setServices(servicesData);
+      try {
+        const servicesQuery = query(collection(db, 'services'));
+        const servicesSnapshot = await getDocs(servicesQuery);
+        const servicesData = servicesSnapshot.docs.map(doc => {
+          // Убедимся, что ID документа корректно присваивается
+          console.log(`Загружаем услугу: ID=${doc.id}, данные=`, doc.data());
+          const serviceData = doc.data();
+          return {
+            ...serviceData,
+            id: doc.id  // Явно присваиваем ID документа
+          } as Service;
+        });
+        console.log('Загруженные услуги:', servicesData);
+        setServices(servicesData);
+      } catch (error) {
+        console.error("Ошибка при загрузке услуг:", error);
+        showNotification('error', 'Ошибка при загрузке услуг');
+      }
 
       // Загружаем категории услуг
-      const categoriesQuery = query(collection(db, 'service_categories'), orderBy('order'));
-      const categoriesSnapshot = await getDocs(categoriesQuery);
-      const categoriesData = categoriesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as ServiceCategory));
-      setCategories(categoriesData);
+      try {
+        const categoriesQuery = query(collection(db, 'service_categories'), orderBy('order'));
+        const categoriesSnapshot = await getDocs(categoriesQuery);
+        const categoriesData = categoriesSnapshot.docs.map(doc => {
+          // Убедимся, что ID документа корректно присваивается
+          console.log(`Загружаем категорию: ID=${doc.id}, данные=`, doc.data());
+          const categoryData = doc.data();
+          return {
+            ...categoryData,
+            id: doc.id  // Явно присваиваем ID документа
+          } as ServiceCategory;
+        });
+        console.log('Загруженные категории:', categoriesData);
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Ошибка при загрузке категорий:", error);
+        showNotification('error', 'Ошибка при загрузке категорий');
+      }
 
       // Загружаем заказы
-      const ordersQuery = query(collection(db, 'orders'));
-      const ordersSnapshot = await getDocs(ordersQuery);
-      const ordersData = ordersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as FirestoreOrder));
+      let ordersData: FirestoreOrder[] = [];
+      try {
+        const ordersQuery = query(collection(db, 'orders'));
+        const ordersSnapshot = await getDocs(ordersQuery);
+        ordersData = ordersSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as FirestoreOrder));
+      } catch (error) {
+        console.error("Ошибка при загрузке заказов:", error);
+        showNotification('error', 'Ошибка при загрузке заказов');
+      }
       
-      // Создаем маппинг услуг к их категориям
-      const serviceToCategory = new Map<string, string>();
-      servicesData.forEach(service => {
-        if (service.categoryId) {
-        serviceToCategory.set(service.title, service.categoryId);
-        }
-      });
-      
-      // Рассчитываем доходы по категориям
-      const categoryRevenue: Record<string, number> = {};
-      
-      const categoryCount: Record<string, number> = {};
-      
-      // Обработка заказов
-      ordersData.forEach(order => {
-        if (!order.title || !order.price) return;
+      // Обработка данных для диаграммы
+      try {
+        // Создаем маппинг услуг к их категориям
+        const serviceToCategory = new Map<string, string>();
+        services.forEach(service => {
+          if (service.categoryId) {
+            serviceToCategory.set(service.title, service.categoryId);
+          }
+        });
         
-        // Получаем categoryId по названию услуги
-        const categoryId = serviceToCategory.get(order.title);
+        // Рассчитываем доходы по категориям
+        const categoryRevenue: Record<string, number> = {};
+        const categoryCount: Record<string, number> = {};
         
-        // Учитываем только заказы с указанной категорией
-        if (categoryId) {
-          // Суммируем доходы по категории
-          categoryRevenue[categoryId] = (categoryRevenue[categoryId] || 0) + (order.price || 0);
-          categoryCount[categoryId] = (categoryCount[categoryId] || 0) + 1;
-        }
-      });
-      
-      // Создаем массив данных для диаграммы
-      const categoriesWithRevenue: OrderByCategory[] = Object.entries(categoryRevenue).map(([categoryId, revenue], index) => {
-        // Находим название категории
-        const category = categoriesData.find(cat => cat.id === categoryId);
-        const categoryName = category ? category.name : 'Прочее';
+        // Обработка заказов
+        ordersData.forEach(order => {
+          if (!order.title || !order.price) return;
+          
+          // Получаем categoryId по названию услуги
+          const categoryId = serviceToCategory.get(order.title);
+          
+          // Учитываем только заказы с указанной категорией
+          if (categoryId) {
+            // Суммируем доходы по категории
+            categoryRevenue[categoryId] = (categoryRevenue[categoryId] || 0) + (order.price || 0);
+            categoryCount[categoryId] = (categoryCount[categoryId] || 0) + 1;
+          }
+        });
         
-        // Определяем цвет для категории
-        const colors = generateColors(Object.keys(categoryRevenue).length);
-        const color = colors[index];
+        // Создаем массив данных для диаграммы
+        const categoriesWithRevenue: OrderByCategory[] = Object.entries(categoryRevenue).map(([categoryId, revenue], index) => {
+          // Находим название категории
+          const category = categories.find(cat => cat.id === categoryId);
+          const categoryName = category ? category.name : 'Прочее';
+          
+          // Определяем цвет для категории
+          const colors = generateColors(Object.keys(categoryRevenue).length);
+          const color = colors[index];
+          
+          return {
+            category: categoryName,
+            revenue: revenue,
+            ordersCount: categoryCount[categoryId],
+            color: color
+          };
+        });
         
-        return {
-          category: categoryName,
-          revenue: revenue,
-          ordersCount: categoryCount[categoryId],
-          color: color
-        };
-      });
-      
-      // Сортируем категории по убыванию дохода
-      categoriesWithRevenue.sort((a, b) => b.revenue - a.revenue);
-      
-      // Обновляем данные для диаграммы
-      setOrdersByCategory(categoriesWithRevenue);
-      
-      // Рассчитываем общий доход как сумму из диаграммы
-      const totalRev = categoriesWithRevenue.reduce((sum, item) => sum + item.revenue, 0);
-      // Количество заказов берем из базы данных
-      const totalOrd = ordersData.length;
-      
-      // Обновляем общие показатели
-      setTotalRevenue(`${totalRev} ₽`);
-      setTotalOrders(totalOrd);
-
+        // Сортируем категории по убыванию дохода
+        categoriesWithRevenue.sort((a, b) => b.revenue - a.revenue);
+        
+        // Обновляем данные для диаграммы
+        setOrdersByCategory(categoriesWithRevenue);
+        
+        // Рассчитываем общий доход как сумму из диаграммы
+        const totalRev = categoriesWithRevenue.reduce((sum, item) => sum + item.revenue, 0);
+        // Количество заказов берем из базы данных
+        const totalOrd = ordersData.length;
+        
+        // Обновляем общие показатели
+        setTotalRevenue(`${totalRev} ₽`);
+        setTotalOrders(totalOrd);
+      } catch (error) {
+        console.error("Ошибка при обработке данных для диаграммы:", error);
+        showNotification('error', 'Ошибка при обработке данных');
+      }
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
       showNotification('error', 'Ошибка при загрузке данных');
@@ -846,21 +964,48 @@ const Income: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {services.map(service => (
-                  <tr key={service.id}>
-                    <td>{service.title}</td>
-                    <td>{getCategoryName(service.categoryId)}</td>
-                    <td>{service.price} {service.currency}</td>
-                    <td className="actions">
-                      <button className="action-button edit" onClick={() => editService(service)} title="Редактировать">
-                        <Edit size={16} color="#4a90e2" />
-                      </button>
-                      <button className="action-button delete" onClick={() => openDeleteConfirmation(service.id, 'service')} title="Удалить">
-                        <Trash2 size={16} color="#D04E4E" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {services.map(service => {
+                  console.log(`Rendering service: id="${service.id}", title="${service.title}"`);
+                  return (
+                    <tr key={service.id}>
+                      <td>{service.title}</td>
+                      <td>{getCategoryName(service.categoryId)}</td>
+                      <td>{service.price} {service.currency}</td>
+                      <td className="actions">
+                        <button className="action-button edit" onClick={() => editService(service)} title="Редактировать">
+                          <Edit size={16} color="#4a90e2" />
+                        </button>
+                        <button 
+                          className="action-button delete" 
+                          onClick={() => {
+                            console.log(`Delete button clicked for service:`, service);
+                            if (!service) {
+                              console.error('Service is undefined');
+                              showNotification('error', 'Невозможно удалить услугу: услуга не найдена');
+                              return;
+                            }
+                            
+                            // Ensure we have a valid ID
+                            const serviceId = service.id;
+                            console.log(`Service ID: "${serviceId}", Type: ${typeof serviceId}`);
+                            
+                            if (!serviceId || typeof serviceId !== 'string' || serviceId.trim() === '') {
+                              console.error('Invalid service ID:', serviceId);
+                              showNotification('error', 'Невозможно удалить услугу: ID не указан');
+                              return;
+                            }
+                            
+                            // Use the string ID directly
+                            openDeleteConfirmation(String(serviceId), 'service');
+                          }} 
+                          title="Удалить"
+                        >
+                          <Trash2 size={16} color="#D04E4E" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {services.length === 0 && (
                   <tr>
                     <td colSpan={4} className="no-data">Нет данных</td>
@@ -881,21 +1026,48 @@ const Income: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {categories.map(category => (
-                  <tr key={category.id}>
-                    <td>{category.name}</td>
-                    <td>{category.order}</td>
-                    <td>{services.filter(service => service.categoryId === category.id).length}</td>
-                    <td className="actions">
-                      <button className="action-button edit" onClick={() => editCategory(category)} title="Редактировать">
-                        <Edit size={16} color="#4a90e2" />
-                      </button>
-                      <button className="action-button delete" onClick={() => openDeleteConfirmation(category.id, 'category')} title="Удалить">
-                        <Trash2 size={16} color="#D04E4E" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {categories.map(category => {
+                  console.log(`Rendering category: id="${category.id}", name="${category.name}"`);
+                  return (
+                    <tr key={category.id}>
+                      <td>{category.name}</td>
+                      <td>{category.order}</td>
+                      <td>{services.filter(service => service.categoryId === category.id).length}</td>
+                      <td className="actions">
+                        <button className="action-button edit" onClick={() => editCategory(category)} title="Редактировать">
+                          <Edit size={16} color="#4a90e2" />
+                        </button>
+                        <button 
+                          className="action-button delete" 
+                          onClick={() => {
+                            console.log(`Delete button clicked for category:`, category);
+                            if (!category) {
+                              console.error('Category is undefined');
+                              showNotification('error', 'Невозможно удалить категорию: категория не найдена');
+                              return;
+                            }
+                            
+                            // Ensure we have a valid ID
+                            const categoryId = category.id;
+                            console.log(`Category ID: "${categoryId}", Type: ${typeof categoryId}`);
+                            
+                            if (!categoryId || typeof categoryId !== 'string' || categoryId.trim() === '') {
+                              console.error('Invalid category ID:', categoryId);
+                              showNotification('error', 'Невозможно удалить категорию: ID не указан');
+                              return;
+                            }
+                            
+                            // Use the string ID directly
+                            openDeleteConfirmation(String(categoryId), 'category');
+                          }} 
+                          title="Удалить"
+                        >
+                          <Trash2 size={16} color="#D04E4E" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {categories.length === 0 && (
                   <tr>
                     <td colSpan={4} className="no-data">Нет данных</td>
