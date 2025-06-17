@@ -5,8 +5,9 @@ import Home from './pages/Home';
 import Employees from './pages/Employees';
 import Clients from './pages/Clients';
 import Income from './pages/Income';
-import Dispatcher from './pages/Dispatcher';
 import Orders from './pages/Orders';
+import Categories from './pages/Categories';
+import OrderHistory from './pages/OrderHistory';
 import { auth, db } from '../assets/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -16,7 +17,7 @@ interface LayoutProps {
 
 const Layout = ({ onLogout }: LayoutProps) => {
   const [activeTab, setActiveTab] = useState('главная');
-  const [userRole, setUserRole] = useState<string>('admin');
+  const [userRole, setUserRole] = useState<'admin' | 'user' | null>(null);
 
   // Получаем роль пользователя при загрузке компонента
   useEffect(() => {
@@ -28,12 +29,18 @@ const Layout = ({ onLogout }: LayoutProps) => {
           if (userDoc.exists()) {
             const userData = userDoc.data();
             if (userData.role) {
-              setUserRole(userData.role);
+              setUserRole(userData.role as 'admin' | 'user');
             }
+          } else {
+            // Если документ пользователя не существует, устанавливаем роль по умолчанию или null
+            setUserRole(null);
           }
         } catch (error) {
           console.error('Ошибка при получении роли пользователя:', error);
+          setUserRole(null);
         }
+      } else {
+        setUserRole(null);
       }
     };
 
@@ -42,14 +49,21 @@ const Layout = ({ onLogout }: LayoutProps) => {
 
   // Проверяем доступность вкладки для текущей роли
   useEffect(() => {
-    // Если роль админа и выбрана вкладка "диспетчер", перенаправляем на главную
-    if (userRole === 'admin' && activeTab === 'диспетчер') {
-      setActiveTab('главная');
-    }
-    
-    // Если роль диспетчера и выбрана вкладка "доход", перенаправляем на главную
-    if (userRole === 'dispatcher' && activeTab === 'доход') {
-      setActiveTab('главная');
+    // Вкладки, доступные только для определенных ролей
+    const restrictedTabs: { [key: string]: Array<'admin' | 'user'> } = {
+      'заказы': ['admin'],
+      'доход': ['admin'],
+      'сотрудники': ['admin'],
+      'клиенты': ['admin'],
+      'категории': ['user'],
+      'история-заказов': ['user'],
+    };
+
+    if (userRole && activeTab !== 'главная') {
+      const allowedRoles = restrictedTabs[activeTab];
+      if (allowedRoles && !allowedRoles.includes(userRole)) {
+        setActiveTab('главная'); // Перенаправляем на главную, если нет доступа
+      }
     }
   }, [userRole, activeTab]);
 
@@ -61,31 +75,31 @@ const Layout = ({ onLogout }: LayoutProps) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'главная':
-        return <Home />;
+        return <Home userRole={userRole} />;
       case 'сотрудники':
-        return <Employees />;
+        return userRole === 'admin' ? <Employees /> : <Home userRole={userRole}/>;
       case 'клиенты':
-        return <Clients />;
+        return userRole === 'admin' ? <Clients /> : <Home userRole={userRole}/>;
       case 'доход':
-        return <Income />;
-      case 'диспетчер':
-        // Вкладка диспетчера доступна только диспетчерам
-        return userRole === 'dispatcher' ? <Dispatcher /> : <Home />;
+        return userRole === 'admin' ? <Income /> : <Home userRole={userRole}/>;
       case 'заказы':
-        // Вкладка заказов доступна только админам
-        return userRole === 'admin' ? <Orders /> : <Home />;
+        return userRole === 'admin' ? <Orders /> : <Home userRole={userRole}/>;
+      case 'категории':
+        return <Categories />;
+      case 'история-заказов':
+        return userRole === 'user' ? <OrderHistory /> : <Home userRole={userRole}/>;
       default:
-        return <Home />;
+        return <Home userRole={userRole}/>;
     }
   };
 
   return (
     <div className="layout">
-      <Sidebar onLogout={onLogout} onChangeTab={handleChangeTab} activeTab={activeTab} />
+      <Sidebar onLogout={onLogout} onChangeTab={handleChangeTab} activeTab={activeTab} userRole={userRole} />
       <div className="content">
         {renderContent()}
       </div>
     </div>
   );
 };
-export default Layout
+export default Layout;

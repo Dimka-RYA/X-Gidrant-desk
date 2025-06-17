@@ -244,6 +244,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-bottom: 10px;
 }
 
 .auth-button:hover {
@@ -251,49 +252,116 @@
 }
 
 .auth-button:disabled {
-  background-color: #ccc;
+  background-color: #cccccc;
   cursor: not-allowed;
 }
 
 .auth-error {
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  background-color: #FFE9E9;
-  color: #D32F2F;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.auth-test-credentials {
-  margin-top: 1.5rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.test-button {
-  background: none;
-  border: 1px solid #D04E4E;
   color: #D04E4E;
-  font-size: 0.9rem;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
+  background-color: #fce8e8;
+  border: 1px solid #D04E4E;
+  padding: 10px;
   border-radius: 4px;
-  margin-bottom: 0.5rem;
-  transition: all 0.2s;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 0.9em;
 }
 
-.test-button:hover {
+/* New styles for toggle and test data buttons */
+.toggle-auth-mode-button,
+.test-data-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  margin-top: 5px;
+}
+
+.toggle-auth-mode-button {
   background-color: #D04E4E;
+  color: white;
+  border-color: #D04E4E;
+}
+
+.toggle-auth-mode-button:hover {
+  background-color: #B83C3C;
+  border-color: #B83C3C;
   color: white;
 }
 
-.credentials-info {
-  font-size: 0.8rem;
-  color: #666;
-  margin-top: 0.5rem;
-  text-align: center;
+.test-data-button:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.test-data-button {
+  margin-top: 15px;
+  background-color: #6c757d;
+  color: white;
+}
+
+.test-data-button:hover {
+  background-color: #5a6268;
+}
+
+.test-data-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.role-selector {
+  margin-bottom: 1.5rem;
+}
+
+.role-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.role-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.role-button {
+  flex-grow: 1;
+  padding: 0.75rem 1rem;
+  background-color: #f0f0f0;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+  max-width: 150px;
+}
+
+.role-button:hover {
+  background-color: #e0e0e0;
+  border-color: #ccc;
+}
+
+.role-button.active {
+  background-color: #D04E4E;
+  color: white;
+  border-color: #D04E4E;
+}
+
+.role-button.active:hover {
+  background-color: #B83C3C;
+  border-color: #B83C3C;
 }
 
 @media (max-width: 768px) {
@@ -423,37 +491,4 @@
   100% {
     transform: translateY(0px) rotate(-1deg);
   }
-}
-
-/* Стили для селектора ролей */
-.role-selector {
-  margin-bottom: 1.5rem;
-}
-
-.role-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.role-button {
-  flex: 1;
-  padding: 0.75rem;
-  background-color: #D04E4E;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.role-button:hover {
-  background-color: #B83C3C;
-}
-
-.role-button.active {
-  background-color: #8B2F2F;
-  color: white;
 }

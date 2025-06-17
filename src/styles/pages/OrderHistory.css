@@ -1,0 +1,90 @@
+.order-history-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 60px); /* Adjust for TitleBar height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.order-history-container h2 {
+  font-size: 2.5em;
+  color: #343a40;
+  margin-bottom: 30px;
+  text-align: center;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 10px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.order-history-loading,
+.order-history-error {
+  font-size: 1.5em;
+  color: #dc3545;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.order-history-loading {
+  color: #007bff;
+}
+
+.order-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  width: 100%;
+  max-width: 1200px;
+  justify-content: center;
+}
+
+.order-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.order-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.order-card h3 {
+  font-size: 1.7em;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.order-card p {
+  font-size: 1.05em;
+  color: #6c757d;
+  line-height: 1.6;
+  margin-bottom: 5px;
+}
+
+.order-status {
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+
+.order-status.в-обработке {
+  background-color: #ffc107;
+  color: #343a40;
+}
+
+.order-status.завершен {
+  background-color: #28a745;
+  color: white;
+}
+
+.order-status.отменен {
+  background-color: #dc3545;
+  color: white;
+} 

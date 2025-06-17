@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   signInWithEmailAndPassword,
-  AuthError 
+  AuthError,
+  createUserWithEmailAndPassword
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../assets/firebase';
@@ -11,7 +12,7 @@ import firdSvg from '../assets/fird.svg';
 import firdstSvg from '../assets/firdst.svg';
 
 interface AuthFormProps {
-  onSuccess: () => void;
+  onSuccess: (role: 'admin' | 'user') => void;
 }
 
 const AuthForm = ({ onSuccess }: AuthFormProps) => {
@@ -19,20 +20,60 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'admin' | 'dispatcher'>('admin');
+  const [role, setRole] = useState<'admin' | 'user'>('admin');
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const handleRegister = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+      
+      await setDoc(doc(db, 'users', userId), {
+        uid: userId,
+        email: email,
+        role: role,
+        name: 
+          role === 'admin' ? 'Администратор' : 
+          'Пользователь',
+        createdAt: new Date()
+      });
+      onSuccess(role);
+    } catch (err) {
+      const authError = err as AuthError;
+      let errorMessage = 'Произошла ошибка при регистрации';
+
+      if (authError.code === 'auth/email-already-in-use') {
+        errorMessage = 'Пользователь с таким email уже существует.';
+      } else if (authError.code === 'auth/weak-password') {
+        errorMessage = 'Пароль должен быть не менее 6 символов.';
+      } else if (authError.code === 'auth/invalid-email') {
+        errorMessage = 'Некорректный email';
+      }
+      console.error("Ошибка регистрации:", authError);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isRegistering) {
+      handleRegister();
+      return;
+    }
     setError(null);
     setLoading(true);
 
     try {
       // Проверяем, используются ли тестовые учетные данные
       const isTestAdmin = email === 'admin@xgidrant.com' && password === 'admin123';
-      const isTestDispatcher = email === 'dispatcher@xgidrant.com' && password === 'dispatcher123';
+      const isTestUser = email === 'user@xgidrant.com' && password === 'user123';
       
       // Если используются тестовые данные, создаем пользователя, если он не существует
-      if (isTestAdmin || isTestDispatcher) {
+      if (isTestAdmin || isTestUser) {
         try {
           // Пытаемся войти с тестовыми данными
           const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -49,7 +90,9 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
               await setDoc(userDocRef, { 
                 ...userData, 
                 role: role,
-                name: role === 'admin' ? 'Администратор' : 'Диспетчер'
+                name: 
+                  role === 'admin' ? 'Администратор' : 
+                  'Пользователь'
               }, { merge: true });
             }
           } else {
@@ -58,21 +101,20 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
               uid: userId,
               email: email,
               role: role,
-              name: role === 'admin' ? 'Администратор' : 'Диспетчер',
+              name:
+                role === 'admin' ? 'Администратор' :
+                'Пользователь',
               createdAt: new Date()
             });
           }
           
           // Успешный вход
-          onSuccess();
+          onSuccess(role);
           return;
         } catch (error) {
           // Если не удалось войти, значит пользователь не существует
-          // Мы не выводим ошибку на этом этапе, а продолжаем создание нового пользователя
           console.log("Пользователь не существует, создаем нового...");
           
-          // Реализация для реального проекта должна включать регистрацию пользователя
-          // Но в тестовом режиме просто имитируем успешный вход
           setError("Тестовый пользователь не существует в Firebase. В реальном проекте здесь должен быть код регистрации.");
           setLoading(false);
           return;
@@ -104,8 +146,10 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
         await setDoc(userDocRef, {
           uid: userId,
           email: userCredential.user.email,
-          role: role, // Используем выбранную роль
-          name: role === 'admin' ? 'Администратор' : 'Диспетчер',
+          role: role,
+          name:
+            role === 'admin' ? 'Администратор' :
+            'Пользователь',
           createdAt: new Date()
         });
         console.log("Документ пользователя успешно создан");
@@ -116,12 +160,12 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       if (!userDoc.exists()) {
         console.warn("Документ пользователя не существует. Создан новый документ.");
         // Пропускаем пользователя без проверки роли
-        onSuccess();
+        onSuccess(role);
         return;
       }
       
       const userRole = userDoc.data().role;
-      if (userRole !== 'admin' && userRole !== 'dispatcher') {
+      if (userRole !== 'admin' && userRole !== 'user') {
         console.warn("У пользователя нет допустимой роли. Текущая роль:", userRole || "не указана");
         setError('У вас нет доступа к панели управления. Обратитесь к администратору.');
         setLoading(false);
@@ -129,7 +173,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       }
       
       // Если всё в порядке, авторизуем пользователя
-      onSuccess();
+      onSuccess(userRole);
       
     } catch (err) {
       const authError = err as AuthError;
@@ -152,9 +196,9 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     if (role === 'admin') {
       setEmail('admin@xgidrant.com');
       setPassword('admin123');
-    } else {
-      setEmail('dispatcher@xgidrant.com');
-      setPassword('dispatcher123');
+    } else if (role === 'user') {
+      setEmail('user@xgidrant.com');
+      setPassword('user123');
     }
   };
 
@@ -162,7 +206,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     <div className="auth-container">
       <div className="auth-form-container">
         <div className="auth-header">
-          <h2>Вход</h2>
+          <h2>{isRegistering ? 'Регистрация' : 'Вход'}</h2>
         </div>
         
         <form onSubmit={handleSubmit} className="auth-form">
@@ -180,10 +224,10 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
               </button>
               <button 
                 type="button"
-                className={`role-button ${role === 'dispatcher' ? 'active' : ''}`}
-                onClick={() => setRole('dispatcher')}
+                className={`role-button ${role === 'user' ? 'active' : ''}`}
+                onClick={() => setRole('user')}
               >
-                Диспетчер
+                Пользователь
               </button>
             </div>
           </div>
@@ -210,36 +254,27 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
             />
           </div>
           
-          <button 
-            type="submit" 
-            className="auth-button"
-            disabled={loading}
-          >
-            {loading ? 'Загрузка...' : 'Войти'}
+          <button type="submit" className="auth-button" disabled={loading}>
+            {isRegistering ? 'Зарегистрироваться' : 'Войти'}
           </button>
-        </form>
-        
-        <div className="auth-test-credentials">
+          
           <button 
+            type="button"
+            className="toggle-auth-mode-button"
+            onClick={() => setIsRegistering(!isRegistering)}
+          >
+            {isRegistering ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться'}
+          </button>
+
+          <button 
+            type="button"
+            className="test-data-button"
             onClick={useTestCredentials}
-            className="test-button"
+            disabled={loading}
           >
             Использовать тестовые данные
           </button>
-          <div className="credentials-info">
-            {role === 'admin' ? (
-              <>
-                Email: admin@xgidrant.com<br />
-                Пароль: admin123
-              </>
-            ) : (
-              <>
-                Email: dispatcher@xgidrant.com<br />
-                Пароль: dispatcher123
-              </>
-            )}
-          </div>
-        </div>
+        </form>
       </div>
       
       <div className="auth-background">
@@ -258,4 +293,5 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     </div>
   );
 };
+
 export default AuthForm
