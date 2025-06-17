@@ -101,6 +101,7 @@
   border-bottom: 1px solid #eee;
   vertical-align: middle;
   font-size: 14px;
+  color: #333;
 }
 
 .orders-table tr:hover {
