@@ -94,8 +94,9 @@ interface MapLocation {
   type: 'engineer' | 'client';
 }
 
+// Основная функция страницы диспетчера
 const Dispatcher: React.FC = () => {
-  // Состояния
+  // Состояния для заказов, сотрудников, фильтров, модалок и т.д.
   const [orders, setOrders] = useState<Order[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);

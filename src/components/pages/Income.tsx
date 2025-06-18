@@ -11,27 +11,27 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, Title)
 
 // Определение интерфейсов для типизации данных
 interface ServiceCategory {
-  id: string;
-  name: string;
-  order: number;
+  id: string; // id категории
+  name: string; // название категории
+  order: number; // порядок отображения
 }
 
 interface Service {
-  id: string;
-  title: string;
-  price: number;
-  currency: string;
-  discount?: number;
-  description?: string;
-  categoryId?: string;
-  features?: string[];
+  id: string; // id услуги
+  title: string; // название услуги
+  price: number; // цена
+  currency: string; // валюта
+  discount?: number; // скидка
+  description?: string; // описание
+  categoryId?: string; // id категории
+  features?: string[]; // особенности
 }
 
 interface OrderByCategory {
-  category: string;
-  revenue: number;
-  ordersCount: number;
-  color: string;
+  category: string; // название категории
+  revenue: number; // доход по категории
+  ordersCount: number; // количество заказов
+  color: string; // цвет для диаграммы
 }
 
 interface FirestoreOrder {

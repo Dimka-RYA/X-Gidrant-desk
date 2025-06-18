@@ -11,25 +11,36 @@ import '../styles/AuthForm.css';
 import firdSvg from '../assets/fird.svg';
 import firdstSvg from '../assets/firdst.svg';
 
+// Описание свойств, которые получает AuthForm от родителя
 interface AuthFormProps {
-  onSuccess: (role: 'admin' | 'user') => void;
+  onSuccess: (role: 'admin' | 'user') => void; // функция, вызывается при успешной авторизации/регистрации
 }
 
+// Основная функция формы авторизации и регистрации
 const AuthForm = ({ onSuccess }: AuthFormProps) => {
+  // email — введённый email пользователя
   const [email, setEmail] = useState('');
+  // password — введённый пароль
   const [password, setPassword] = useState('');
+  // error — текст ошибки, если есть
   const [error, setError] = useState<string | null>(null);
+  // loading — идёт ли сейчас процесс входа/регистрации
   const [loading, setLoading] = useState(false);
+  // role — выбранная роль (админ или пользователь)
   const [role, setRole] = useState<'admin' | 'user'>('admin');
+  // isRegistering — режим: регистрация или вход
   const [isRegistering, setIsRegistering] = useState(false);
 
+  // Функция регистрации нового пользователя
   const handleRegister = async () => {
     setError(null);
     setLoading(true);
     try {
+      // Регистрируем пользователя в Firebase
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
       
+      // Создаём документ пользователя в Firestore
       await setDoc(doc(db, 'users', userId), {
         uid: userId,
         email: email,
@@ -44,6 +55,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       const authError = err as AuthError;
       let errorMessage = 'Произошла ошибка при регистрации';
 
+      // Обработка популярных ошибок
       if (authError.code === 'auth/email-already-in-use') {
         errorMessage = 'Пользователь с таким email уже существует.';
       } else if (authError.code === 'auth/weak-password') {
@@ -58,6 +70,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     }
   };
 
+  // Функция отправки формы (вход или регистрация)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isRegistering) {
@@ -179,6 +192,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       const authError = err as AuthError;
       let errorMessage = 'Произошла ошибка при авторизации';
       
+      // Обработка популярных ошибок
       if (authError.code === 'auth/invalid-email') {
         errorMessage = 'Некорректный email';
       } else if (authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
@@ -192,6 +206,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     }
   };
 
+  // Функция для автозаполнения тестовых данных
   const useTestCredentials = () => {
     if (role === 'admin') {
       setEmail('admin@xgidrant.com');
@@ -202,6 +217,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     }
   };
 
+  // Возвращаем разметку формы авторизации/регистрации
   return (
     <div className="auth-container">
       <div className="auth-form-container">

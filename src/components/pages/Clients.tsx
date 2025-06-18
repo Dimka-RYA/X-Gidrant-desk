@@ -3,21 +3,24 @@ import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/fire
 import { db } from '../../assets/firebase';
 import '../../styles/pages/Clients.css';
 
+// Описание типа клиента
 interface Client {
-  id: string;
-  name: string;
-  contact: string;
-  phone: string;
-  email: string;
-  orders: number;
+  id: string; // уникальный идентификатор клиента
+  name: string; // имя клиента
+  contact: string; // контактное лицо
+  phone: string; // телефон
+  email: string; // email
+  orders: number; // количество заказов
 }
 
+// Описание состояния редактируемой ячейки
 interface EditingCell {
   clientId: string;
   field: keyof Client;
   value: string | number;
 }
 
+// Иконка редактирования
 const EditIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="#4e8fd0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -25,6 +28,7 @@ const EditIcon = () => (
   </svg>
 );
 
+// Иконка удаления
 const DeleteIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M3 6H5H21" stroke="#D04E4E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -32,21 +36,36 @@ const DeleteIcon = () => (
   </svg>
 );
 
+// Основная функция страницы клиентов
 const Clients: React.FC = () => {
+  // clients — список всех клиентов
   const [clients, setClients] = useState<Client[]>([]);
+  // loading — идёт ли сейчас загрузка
   const [loading, setLoading] = useState<boolean>(true);
+  // error — текст ошибки, если есть
   const [error, setError] = useState<string | null>(null);
+  // editingCell — информация о редактируемой ячейке
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
+  // columnWidths — ширина столбцов (для ресайза)
   const [columnWidths, setColumnWidths] = useState<{[key: string]: number}>({});
+  // deleteConfirmOpen — открыто ли окно подтверждения удаления
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
+  // clientToDelete — id клиента, которого хотим удалить
   const [clientToDelete, setClientToDelete] = useState<string | null>(null);
+  // notification — текст уведомления
   const [notification, setNotification] = useState<string | null>(null);
+  // tableRef — ссылка на таблицу
   const tableRef = useRef<HTMLTableElement>(null);
+  // resizingColumn — id столбца, который сейчас изменяется
   const resizingColumn = useRef<string | null>(null);
+  // initialWidth — начальная ширина столбца
   const initialWidth = useRef<number>(0);
+  // startClientX — начальная позиция мыши
   const startClientX = useRef<number>(0);
+  // resizeLineRef — ссылка на линию изменения размера
   const resizeLineRef = useRef<HTMLDivElement | null>(null);
   
+  // Получаем список клиентов из Firestore при первом рендере
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -132,7 +151,7 @@ const Clients: React.FC = () => {
     };
   }, []);
 
-  // Обработчик начала изменения размера
+  // Обработчик начала изменения размера столбца
   const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -328,7 +347,7 @@ const Clients: React.FC = () => {
     if (!clientToDelete) return;
     
     try {
-      // Удаляем клиента из Firebase
+      // Удаляем клиента из Firebase (помечаем как удалённого)
       await updateDoc(doc(db, 'users', clientToDelete), {
         isDeleted: true
       });
@@ -354,6 +373,7 @@ const Clients: React.FC = () => {
     setClientToDelete(null);
   };
 
+  // Возвращаем разметку страницы клиентов
   return (
     <div className="clients-page">
       <div className="page-header">

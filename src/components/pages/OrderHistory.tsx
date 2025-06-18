@@ -3,20 +3,26 @@ import { auth, db } from '../../assets/firebase';
 import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
 import '../../styles/pages/OrderHistory.css';
 
+// Описание типа заказа для истории
 interface Order {
-  id: string;
-  serviceTitle: string;
-  timestamp: Timestamp;
-  status: string;
-  price?: number;
-  currency?: string;
+  id: string; // id заказа
+  serviceTitle: string; // название услуги
+  timestamp: Timestamp; // время заказа
+  status: string; // статус заказа
+  price?: number; // цена
+  currency?: string; // валюта
 }
 
+// Основная функция истории заказов пользователя
 const OrderHistory: React.FC = () => {
+  // orders — список заказов пользователя
   const [orders, setOrders] = useState<Order[]>([]);
+  // loading — идёт ли сейчас загрузка
   const [loading, setLoading] = useState(true);
+  // error — текст ошибки, если есть
   const [error, setError] = useState<string | null>(null);
 
+  // Загружаем историю заказов при первом рендере
   useEffect(() => {
     const fetchOrders = async () => {
       const user = auth.currentUser;
@@ -54,14 +60,17 @@ const OrderHistory: React.FC = () => {
     fetchOrders();
   }, []);
 
+  // Если идёт загрузка — показываем сообщение
   if (loading) {
     return <div className="order-history-loading">Загрузка истории заказов...</div>;
   }
 
+  // Если произошла ошибка — показываем ошибку
   if (error) {
     return <div className="order-history-error">{error}</div>;
   }
 
+  // Возвращаем разметку истории заказов
   return (
     <div className="order-history-container">
       <h2>История Ваших Заказов</h2>

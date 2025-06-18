@@ -20,14 +20,14 @@ import { db } from '../../assets/firebase';
 import '../../styles/pages/Orders.css';
 import LocationMap from '../Map';
 
-// Расширенный тип для статусного события
+// Описание типа статусного события
 interface StatusEvent {
   dateTime: string;
   notes: string;
   status: string;
 }
 
-// Расширенный тип для геолокации
+// Описание типа геолокации инженера
 interface EngineerLocation {
   accuracy: number;
   latitude: number;
@@ -35,7 +35,7 @@ interface EngineerLocation {
   timestamp: number;
 }
 
-// Расширенный интерфейс Order
+// Описание типа заказа
 interface Order {
   id: string;
   title: string;
@@ -69,6 +69,7 @@ interface Order {
   userName?: string;
 }
 
+// Описание типа сотрудника
 interface Employee {
   id: string;
   name: string;
@@ -78,6 +79,7 @@ interface Employee {
   currentOrders?: number;
 }
 
+// Основная функция страницы заказов
 const Orders: React.FC = () => {
   // Состояния
   const [orders, setOrders] = useState<Order[]>([]);

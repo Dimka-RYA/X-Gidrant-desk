@@ -37,6 +37,7 @@ interface HomeProps {
   userRole: 'admin' | 'dispatcher' | 'user' | 'engineer' | null;
 }
 
+// Главная страница (дашборд)
 const Home: React.FC<HomeProps> = ({ userRole }) => {
   // Состояния для данных графиков
   const [orderData, setOrderData] = useState<OrderData[]>([]);
@@ -419,6 +420,7 @@ const Home: React.FC<HomeProps> = ({ userRole }) => {
     },
   };
 
+  // Если пользователь — обычный, показываем приветствие
   if (userRole === 'user') {
     return (
       <div className="home-container user-dashboard">
@@ -429,6 +431,7 @@ const Home: React.FC<HomeProps> = ({ userRole }) => {
     );
   }
 
+  // Возвращаем разметку главной страницы
   return (
     <div className="home-container">
       <div className="welcome-section">

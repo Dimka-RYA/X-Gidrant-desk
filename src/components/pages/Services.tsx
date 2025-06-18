@@ -5,6 +5,7 @@ import Modal from '../Modal';
 import OrderForm from '../OrderForm';
 import '../../styles/pages/Services.css';
 
+// Описание типа услуги
 interface Service {
   id: string;
   title: string;
@@ -13,19 +14,28 @@ interface Service {
   categoryId: string;
 }
 
+// Описание типа пропсов для компонента Services
 interface ServicesProps {
   categoryId: string | null;
   categoryName: string | null;
 }
 
+// Основная функция страницы услуг
 const Services: React.FC<ServicesProps> = ({ categoryId, categoryName }) => {
+  // services — список услуг в выбранной категории
   const [services, setServices] = useState<Service[]>([]);
+  // loading — идёт ли сейчас загрузка
   const [loading, setLoading] = useState(true);
+  // error — текст ошибки, если что-то пошло не так
   const [error, setError] = useState<string | null>(null);
+  // selectedService — выбранная услуга для просмотра или заказа
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  // isDetailModalOpen — открыто ли модальное окно с деталями услуги
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  // isOrderModalOpen — открыто ли модальное окно оформления заказа
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
+  // Загрузка услуг из Firestore при изменении выбранной категории
   useEffect(() => {
     const fetchServices = async () => {
       if (!categoryId) {
@@ -59,44 +69,52 @@ const Services: React.FC<ServicesProps> = ({ categoryId, categoryName }) => {
 
     setLoading(true);
     setError(null);
-    setServices([]); // Clear previous services when categoryId changes
+    setServices([]); // Очищаем предыдущие услуги при смене категории
     fetchServices();
   }, [categoryId]);
 
+  // Если идёт загрузка — показываем сообщение
   if (loading) {
     return <div className="services-loading">Загрузка услуг...</div>;
   }
 
+  // Если возникла ошибка — показываем её
   if (error) {
     return <div className="services-error">{error}</div>;
   }
 
+  // Если категория не выбрана — просим выбрать
   if (!categoryId) {
     return <div className="services-no-category">Выберите категорию для просмотра услуг.</div>;
   }
 
+  // Открыть модальное окно с деталями услуги
   const handleServiceClick = (service: Service) => {
     setSelectedService(service);
     setIsDetailModalOpen(true);
   };
 
+  // Закрыть все модальные окна и сбросить выбранную услугу
   const handleBackToServices = () => {
     setSelectedService(null);
     setIsDetailModalOpen(false);
     setIsOrderModalOpen(false);
   };
 
+  // Открыть модальное окно оформления заказа
   const handleOrderClick = (service: Service) => {
     setSelectedService(service);
     setIsOrderModalOpen(true);
   };
 
+  // Обработка успешного оформления заказа
   const handleOrderSubmit = () => {
     // Здесь вы можете добавить логику для сохранения заказа в Firestore или отправки на сервер
     alert("Заказ успешно оформлен!");
     setIsOrderModalOpen(false);
   };
 
+  // Возвращаем разметку страницы услуг
   return (
     <div className="services-container">
       <h2>Услуги в категории "{categoryName}"</h2>
@@ -114,6 +132,7 @@ const Services: React.FC<ServicesProps> = ({ categoryId, categoryName }) => {
         )}
       </div>
 
+      {/* Модальное окно с деталями услуги */}
       <Modal isOpen={isDetailModalOpen} onClose={handleBackToServices}>
         {selectedService && (
           <div className="service-detail-modal-content">
@@ -121,13 +140,14 @@ const Services: React.FC<ServicesProps> = ({ categoryId, categoryName }) => {
             <p className="service-detail-description">{selectedService.description || 'Нет описания'}</p>
             <div className="service-detail-price">Цена: {selectedService.price} руб.</div>
             <button onClick={() => {
-              setIsDetailModalOpen(false); // Close detail modal
-              handleOrderClick(selectedService); // Open order modal
+              setIsDetailModalOpen(false); // Закрыть окно деталей
+              handleOrderClick(selectedService); // Открыть окно заказа
             }} className="order-button">Заказать</button>
           </div>
         )}
       </Modal>
 
+      {/* Модальное окно оформления заказа */}
       <Modal isOpen={isOrderModalOpen} onClose={handleBackToServices}>
         {selectedService && (
           <OrderForm

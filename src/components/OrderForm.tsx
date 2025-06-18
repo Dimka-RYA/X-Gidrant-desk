@@ -3,20 +3,27 @@ import { collection, addDoc } from 'firebase/firestore'; // Import Firestore fun
 import '../styles/OrderForm.css';
 import { auth, db } from '../assets/firebase';
 
+// Описание свойств, которые получает OrderForm от родителя
 interface OrderFormProps {
-  serviceTitle: string;
-  onClose: () => void;
-  onOrderSuccess: () => void; // Changed from onOrderSubmit to onOrderSuccess
+  serviceTitle: string; // название услуги
+  onClose: () => void; // функция для закрытия формы
+  onOrderSuccess: () => void; // функция, вызывается при успешном заказе
 }
 
+// Основная функция формы заказа услуги
 const OrderForm: React.FC<OrderFormProps> = ({ serviceTitle, onClose, onOrderSuccess }) => {
+  // name — имя пользователя
   const [name, setName] = useState('');
+  // address — адрес пользователя
   const [address, setAddress] = useState('');
+  // phone — номер телефона пользователя
   const [phone, setPhone] = useState('');
+  // paymentMethod — выбранный способ оплаты
   const [paymentMethod, setPaymentMethod] = useState('cash');
 
+  // Функция для обработки изменения поля "телефон" (форматирует ввод)
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    const input = e.target.value.replace(/\D/g, ''); // Удаляем все нецифры
     let formattedInput = '';
     if (input.length > 0) {
       formattedInput = '+' + input.substring(0, 1);
@@ -36,41 +43,45 @@ const OrderForm: React.FC<OrderFormProps> = ({ serviceTitle, onClose, onOrderSuc
     setPhone(formattedInput);
   };
 
+  // Функция отправки формы заказа
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Отменяем стандартное поведение формы
 
-    const user = auth.currentUser; // Get current user
+    const user = auth.currentUser; // Получаем текущего пользователя
     if (!user) {
       alert("Для оформления заказа необходимо войти в систему.");
       return;
     }
 
+    // Данные заказа, которые будут отправлены в базу данных
     const orderData = {
       serviceTitle,
       name,
       address,
       phone,
       paymentMethod,
-      userId: user.uid, // Add user ID
-      userEmail: user.email, // Add user email
-      timestamp: new Date(), // Add timestamp
-      status: "В обработке", // Initial status
-      price: 0, // Placeholder, actual price could come from service object
-      currency: "руб.", // Placeholder
-      description: "", // Placeholder
+      userId: user.uid, // ID пользователя
+      userEmail: user.email, // Email пользователя
+      timestamp: new Date(), // Время заказа
+      status: "В обработке", // Статус заказа
+      price: 0, // Заглушка для цены
+      currency: "руб.", // Валюта
+      description: "", // Описание (пустое)
     };
 
     try {
+      // Добавляем заказ в коллекцию "orders" в Firestore
       await addDoc(collection(db, 'orders'), orderData);
       console.log("Заказ успешно добавлен в Firestore!");
-      onOrderSuccess(); // Call success callback
-      onClose(); // Close the modal
+      onOrderSuccess(); // Вызываем функцию успеха
+      onClose(); // Закрываем форму
     } catch (error) {
       console.error("Ошибка при добавлении заказа в Firestore:", error);
       alert("Ошибка при оформлении заказа. Пожалуйста, попробуйте еще раз.");
     }
   };
 
+  // Возвращаем разметку формы заказа
   return (
     <form className="order-form" onSubmit={handleSubmit}>
       <h3>Заказ услуги: {serviceTitle}</h3>

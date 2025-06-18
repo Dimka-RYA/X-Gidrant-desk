@@ -4,21 +4,24 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '../../assets/firebase';
 import '../../styles/pages/Employees.css';
 
+// Описание типа сотрудника
 interface Employee {
-  id: string;
-  name: string;
-  position: string;
-  phone: string;
-  email: string;
-  role: string;
+  id: string; // уникальный идентификатор сотрудника
+  name: string; // имя
+  position: string; // должность
+  phone: string; // телефон
+  email: string; // email
+  role: string; // роль
 }
 
+// Описание состояния редактируемой ячейки
 interface EditingCell {
   employeeId: string;
   field: keyof Employee;
   value: string;
 }
 
+// Описание состояния для нового сотрудника
 interface NewEmployee {
   name: string;
   position: string;
@@ -28,15 +31,25 @@ interface NewEmployee {
   role: string;
 }
 
+// Основная функция страницы сотрудников
 const Employees: React.FC = () => {
+  // employees — список всех сотрудников
   const [employees, setEmployees] = useState<Employee[]>([]);
+  // loading — идёт ли сейчас загрузка
   const [loading, setLoading] = useState<boolean>(true);
+  // error — текст ошибки, если есть
   const [error, setError] = useState<string | null>(null);
+  // showModal — открыто ли окно добавления сотрудника
   const [showModal, setShowModal] = useState<boolean>(false);
+  // showDeleteModal — открыто ли окно подтверждения удаления
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  // employeeToDelete — id сотрудника, которого хотим удалить
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
+  // editingCell — информация о редактируемой ячейке
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
+  // notification — текст уведомления
   const [notification, setNotification] = useState<string | null>(null);
+  // newEmployee — данные для нового сотрудника
   const [newEmployee, setNewEmployee] = useState<NewEmployee>({
     name: '',
     position: '',
@@ -45,13 +58,21 @@ const Employees: React.FC = () => {
     password: '',
     role: ''
   });
+  // employeeType — выбранный тип сотрудника (инженер или диспетчер)
   const [employeeType, setEmployeeType] = useState<string>('');
+  // columnWidths — ширина столбцов (для ресайза)
   const [columnWidths, setColumnWidths] = useState<{[key: string]: number}>({});
+  // tableRef — ссылка на таблицу
   const tableRef = useRef<HTMLTableElement>(null);
+  // resizingColumn — id столбца, который сейчас изменяется
   const resizingColumn = useRef<string | null>(null);
+  // initialWidth — начальная ширина столбца
   const initialWidth = useRef<number>(0);
+  // startClientX — начальная позиция мыши
   const startClientX = useRef<number>(0);
+  // resizeLineRef — ссылка на линию изменения размера
   const resizeLineRef = useRef<HTMLDivElement | null>(null);
+  // userRole — роль текущего пользователя
   const [userRole, setUserRole] = useState<string>('admin');
 
   useEffect(() => {

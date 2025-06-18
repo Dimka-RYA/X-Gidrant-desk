@@ -5,19 +5,27 @@ import Services from './Services';
 import '../../styles/pages/Categories.css';
 import '../../styles/pages/Services.css';
 
+// Описание типа категории
 interface Category {
-  id: string;
-  name: string;
-  description: string;
+  id: string; // уникальный идентификатор категории
+  name: string; // название категории
+  description: string; // описание категории
 }
 
+// Основная функция страницы категорий
 const Categories: React.FC = () => {
+  // categories — список всех категорий
   const [categories, setCategories] = useState<Category[]>([]);
+  // loading — идёт ли сейчас загрузка категорий
   const [loading, setLoading] = useState(true);
+  // error — текст ошибки, если есть
   const [error, setError] = useState<string | null>(null);
+  // selectedCategoryId — id выбранной категории
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  // selectedCategoryName — название выбранной категории
   const [selectedCategoryName, setSelectedCategoryName] = useState<string | null>(null);
 
+  // Загружаем категории из Firestore при первом рендере
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -31,6 +39,7 @@ const Categories: React.FC = () => {
         }));
         setCategories(fetchedCategories);
 
+        // Если есть хотя бы одна категория, выбираем первую по умолчанию
         if (fetchedCategories.length > 0) {
           setSelectedCategoryId(fetchedCategories[0].id);
           setSelectedCategoryName(fetchedCategories[0].name);
@@ -47,19 +56,23 @@ const Categories: React.FC = () => {
     fetchCategories();
   }, []);
 
+  // Обработка клика по кнопке категории
   const handleCategoryClick = (categoryId: string, categoryName: string) => {
     setSelectedCategoryId(categoryId);
     setSelectedCategoryName(categoryName);
   };
 
+  // Если идёт загрузка — показываем сообщение
   if (loading) {
     return <div className="categories-loading">Загрузка категорий...</div>;
   }
 
+  // Если произошла ошибка — показываем ошибку
   if (error) {
     return <div className="categories-error">{error}</div>;
   }
 
+  // Возвращаем разметку страницы категорий
   return (
     <div className="categories-page-container">
       <div className="category-switcher-container">
@@ -78,7 +91,6 @@ const Categories: React.FC = () => {
         <Services 
           categoryId={selectedCategoryId} 
           categoryName={selectedCategoryName} 
-          onBackToCategories={() => { }}
         />
       ) : (
         <p className="no-category-selected-message">Выберите категорию для просмотра услуг.</p>

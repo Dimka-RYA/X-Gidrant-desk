@@ -11,12 +11,16 @@ import OrderHistory from './pages/OrderHistory';
 import { auth, db } from '../assets/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
+// Описание свойств, которые получает Layout от родителя
 interface LayoutProps {
-  onLogout: () => void;
+  onLogout: () => void; // функция для выхода из аккаунта
 }
 
+// Основная функция макета приложения (структура страницы)
 const Layout = ({ onLogout }: LayoutProps) => {
+  // activeTab — текущая выбранная вкладка
   const [activeTab, setActiveTab] = useState('главная');
+  // userRole — роль пользователя (админ или пользователь)
   const [userRole, setUserRole] = useState<'admin' | 'user' | null>(null);
 
   // Получаем роль пользователя при загрузке компонента
@@ -67,6 +71,7 @@ const Layout = ({ onLogout }: LayoutProps) => {
     }
   }, [userRole, activeTab]);
 
+  // Функция для смены вкладки
   const handleChangeTab = (tab: string) => {
     setActiveTab(tab);
   };
@@ -93,6 +98,7 @@ const Layout = ({ onLogout }: LayoutProps) => {
     }
   };
 
+  // Возвращаем разметку макета приложения
   return (
     <div className="layout">
       <Sidebar onLogout={onLogout} onChangeTab={handleChangeTab} activeTab={activeTab} userRole={userRole} />

@@ -5,6 +5,7 @@ import '../styles/Map.css';
 
 // Решение проблемы с иконками в React+Leaflet
 // https://github.com/PaulLeCam/react-leaflet/issues/453
+// Удаляем стандартные пути к иконкам, чтобы работали кастомные
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -12,7 +13,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Кастомные иконки
+// Кастомные иконки для инженера и клиента
 const engineerIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
@@ -31,28 +32,33 @@ const clientIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
+// Описание типа локации
 interface Location {
-  lat: number;
-  lng: number;
-  title: string;
-  description?: string;
-  type: 'engineer' | 'client';
+  lat: number; // широта
+  lng: number; // долгота
+  title: string; // название точки
+  description?: string; // описание точки
+  type: 'engineer' | 'client'; // тип точки
 }
 
+// Описание свойств, которые получает карта
 interface LocationMapProps {
-  locations: Location[];
-  center?: [number, number];
-  zoom?: number;
-  height?: string;
+  locations: Location[]; // массив точек для отображения
+  center?: [number, number]; // центр карты
+  zoom?: number; // масштаб
+  height?: string; // высота карты
 }
 
+// Основная функция карты с точками
 const LocationMap: React.FC<LocationMapProps> = ({ 
   locations, 
   center = [45.7522, 37.6156], // Москва по умолчанию
   zoom = 10,
   height = '500px'
 }) => {
+  // Ссылка на div, в который будет вставлена карта
   const mapRef = useRef<HTMLDivElement>(null);
+  // Сохраняем экземпляр карты, чтобы не создавать заново
   const mapInstanceRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
@@ -79,7 +85,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
         icon: location.type === 'engineer' ? engineerIcon : clientIcon
       }).addTo(map);
 
-      // Добавляем попап с информацией
+      // Добавляем попап с информацией о точке
       marker.bindPopup(`
         <div>
           <h3>${location.title}</h3>
@@ -89,7 +95,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
       `);
     });
 
-    // Очистка при размонтировании
+    // Очистка при размонтировании компонента
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -98,6 +104,7 @@ const LocationMap: React.FC<LocationMapProps> = ({
     };
   }, [locations, center, zoom]); // Перегенерировать карту при изменении этих пропсов
 
+  // Возвращаем разметку карты
   return (
     <div className="map-container" style={{ height }}>
       <div ref={mapRef} style={{ height: '100%', width: '100%' }}></div>
