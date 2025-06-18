@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, addDoc } from 'firebase/firestore'; // Import Firestore functions
 import '../styles/OrderForm.css';
 import { auth, db } from '../assets/firebase';
@@ -8,10 +8,11 @@ interface OrderFormProps {
   serviceTitle: string; // название услуги
   onClose: () => void; // функция для закрытия формы
   onOrderSuccess: () => void; // функция, вызывается при успешном заказе
+  price?: number; // цена услуги
 }
 
 // Основная функция формы заказа услуги
-const OrderForm: React.FC<OrderFormProps> = ({ serviceTitle, onClose, onOrderSuccess }) => {
+const OrderForm: React.FC<OrderFormProps> = ({ serviceTitle, onClose, onOrderSuccess, price = 0 }) => {
   // name — имя пользователя
   const [name, setName] = useState('');
   // address — адрес пользователя
@@ -20,6 +21,28 @@ const OrderForm: React.FC<OrderFormProps> = ({ serviceTitle, onClose, onOrderSuc
   const [phone, setPhone] = useState('');
   // paymentMethod — выбранный способ оплаты
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  // orderPrice — цена заказа (с проверкой на число)
+  const [orderPrice, setOrderPrice] = useState<number>(0);
+
+  // При получении цены из props, преобразуем её в число и сохраняем в state
+  useEffect(() => {
+    // Проверяем, что цена определена и является числом
+    if (price !== undefined && price !== null) {
+      // Если цена передана как строка, преобразуем в число
+      const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+      // Проверяем, что после преобразования получилось валидное число
+      if (!isNaN(numericPrice)) {
+        setOrderPrice(numericPrice);
+        console.log('Установлена цена заказа:', numericPrice);
+      } else {
+        console.warn('Получена невалидная цена:', price);
+        setOrderPrice(0);
+      }
+    } else {
+      console.warn('Цена не определена, устанавливаем 0');
+      setOrderPrice(0);
+    }
+  }, [price]);
 
   // Функция для обработки изменения поля "телефон" (форматирует ввод)
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +78,8 @@ const OrderForm: React.FC<OrderFormProps> = ({ serviceTitle, onClose, onOrderSuc
 
     // Данные заказа, которые будут отправлены в базу данных
     const orderData = {
-      serviceTitle,
+      title: serviceTitle, // Используем title для совместимости
+      serviceTitle, // Оставляем serviceTitle для обратной совместимости
       name,
       address,
       phone,
@@ -63,16 +87,20 @@ const OrderForm: React.FC<OrderFormProps> = ({ serviceTitle, onClose, onOrderSuc
       userId: user.uid, // ID пользователя
       userEmail: user.email, // Email пользователя
       timestamp: new Date(), // Время заказа
+      createdAt: new Date(), // Время создания (для совместимости)
       status: "В обработке", // Статус заказа
-      price: 0, // Заглушка для цены
+      price: orderPrice, // Используем преобразованную цену
       currency: "руб.", // Валюта
       description: "", // Описание (пустое)
     };
 
+    console.log("Отправляем заказ в Firestore:", orderData);
+    console.log("Цена заказа:", orderPrice, "тип:", typeof orderPrice);
+
     try {
       // Добавляем заказ в коллекцию "orders" в Firestore
-      await addDoc(collection(db, 'orders'), orderData);
-      console.log("Заказ успешно добавлен в Firestore!");
+      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      console.log("Заказ успешно добавлен в Firestore! ID:", docRef.id);
       onOrderSuccess(); // Вызываем функцию успеха
       onClose(); // Закрываем форму
     } catch (error) {
@@ -85,6 +113,9 @@ const OrderForm: React.FC<OrderFormProps> = ({ serviceTitle, onClose, onOrderSuc
   return (
     <form className="order-form" onSubmit={handleSubmit}>
       <h3>Заказ услуги: {serviceTitle}</h3>
+      <div className="service-price-info">
+        <p>Стоимость: {orderPrice} руб.</p>
+      </div>
       <div className="form-group">
         <label htmlFor="name">Ваше имя:</label>
         <input

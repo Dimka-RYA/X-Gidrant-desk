@@ -51,13 +51,23 @@ const Services: React.FC<ServicesProps> = ({ categoryId, categoryName }) => {
           where('categoryId', '==', categoryId)
         );
         const querySnapshot = await getDocs(q);
-        const fetchedServices: Service[] = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          title: doc.data().title,
-          description: doc.data().description || '',
-          price: doc.data().price || 0,
-          categoryId: doc.data().categoryId,
-        }));
+        const fetchedServices: Service[] = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          // Явно преобразуем цену в число
+          const price = typeof data.price === 'string' 
+            ? parseFloat(data.price) 
+            : (data.price || 0);
+          
+          return {
+            id: doc.id,
+            title: data.title,
+            description: data.description || '',
+            price: price,
+            categoryId: data.categoryId,
+          };
+        });
+        
+        console.log("Загруженные услуги:", fetchedServices);
         setServices(fetchedServices);
       } catch (err) {
         console.error("Error fetching services:", err);
@@ -103,13 +113,14 @@ const Services: React.FC<ServicesProps> = ({ categoryId, categoryName }) => {
 
   // Открыть модальное окно оформления заказа
   const handleOrderClick = (service: Service) => {
+    console.log("Выбрана услуга для заказа:", service);
+    console.log("Цена услуги:", service.price, "тип:", typeof service.price);
     setSelectedService(service);
     setIsOrderModalOpen(true);
   };
 
   // Обработка успешного оформления заказа
   const handleOrderSubmit = () => {
-    // Здесь вы можете добавить логику для сохранения заказа в Firestore или отправки на сервер
     alert("Заказ успешно оформлен!");
     setIsOrderModalOpen(false);
   };
@@ -154,6 +165,7 @@ const Services: React.FC<ServicesProps> = ({ categoryId, categoryName }) => {
             serviceTitle={selectedService.title}
             onClose={handleBackToServices}
             onOrderSuccess={handleOrderSubmit}
+            price={selectedService.price}
           />
         )}
       </Modal>

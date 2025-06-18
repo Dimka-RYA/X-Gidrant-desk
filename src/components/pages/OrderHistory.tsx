@@ -1,22 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { auth, db } from '../../assets/firebase';
-import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import '../../styles/pages/OrderHistory.css';
-
-// Описание типа заказа для истории
-interface Order {
-  id: string; // id заказа
-  serviceTitle: string; // название услуги
-  timestamp: Timestamp; // время заказа
-  status: string; // статус заказа
-  price?: number; // цена
-  currency?: string; // валюта
-}
 
 // Основная функция истории заказов пользователя
 const OrderHistory: React.FC = () => {
   // orders — список заказов пользователя
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   // loading — идёт ли сейчас загрузка
   const [loading, setLoading] = useState(true);
   // error — текст ошибки, если есть
@@ -33,24 +23,29 @@ const OrderHistory: React.FC = () => {
       }
 
       try {
-        const ordersCollectionRef = collection(db, 'orders');
+        // Получаем все заказы текущего пользователя
+        const ordersRef = collection(db, 'orders');
         const q = query(
-          ordersCollectionRef,
-          where('userId', '==', user.uid),
-          orderBy('timestamp', 'desc') // Order by latest orders first
+          ordersRef,
+          where('userId', '==', user.uid)
         );
+        
         const querySnapshot = await getDocs(q);
-        const fetchedOrders: Order[] = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          serviceTitle: doc.data().serviceTitle,
-          timestamp: doc.data().timestamp as Timestamp,
-          status: doc.data().status,
-          price: doc.data().price || 0,
-          currency: doc.data().currency || 'руб.',
-        }));
-        setOrders(fetchedOrders);
+        console.log(`Найдено ${querySnapshot.size} заказов`);
+        
+        // Преобразуем в массив и сохраняем
+        const ordersData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log(`Заказ ${doc.id}:`, data);
+          return {
+            id: doc.id,
+            ...data
+          };
+        });
+        
+        setOrders(ordersData);
       } catch (err) {
-        console.error("Error fetching order history:", err);
+        console.error("Ошибка при загрузке заказов:", err);
         setError("Не удалось загрузить историю заказов. Пожалуйста, попробуйте еще раз.");
       } finally {
         setLoading(false);
@@ -59,6 +54,42 @@ const OrderHistory: React.FC = () => {
 
     fetchOrders();
   }, []);
+
+  // Форматирование даты из Timestamp
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return "Дата неизвестна";
+    
+    try {
+      if (timestamp.seconds) {
+        return new Date(timestamp.seconds * 1000).toLocaleString();
+      } else if (timestamp instanceof Date) {
+        return timestamp.toLocaleString();
+      } else {
+        return "Дата неизвестна";
+      }
+    } catch (error) {
+      return "Дата неизвестна";
+    }
+  };
+
+  // Форматирование цены
+  const formatPrice = (price: any, currency: string = 'руб.') => {
+    // Если цена не определена или не является числом, возвращаем "по согласованию"
+    if (price === undefined || price === null) {
+      return "0";
+    }
+    
+    // Преобразуем к числу если это строка
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+    
+    // Если цена равна 0 или NaN, возвращаем "по согласованию"
+    if (isNaN(numericPrice) || numericPrice === 0) {
+      return "0";
+    }
+    
+    // Форматируем число с разделителями тысяч
+    return `${numericPrice.toLocaleString('ru-RU')} ${currency}`;
+  };
 
   // Если идёт загрузка — показываем сообщение
   if (loading) {
@@ -80,12 +111,10 @@ const OrderHistory: React.FC = () => {
         <div className="order-list">
           {orders.map(order => (
             <div key={order.id} className="order-card">
-              <h3>{order.serviceTitle}</h3>
-              <p>Статус: <span className={`order-status ${order.status.toLowerCase().replace(' ', '-')}`}>{order.status}</span></p>
-              {order.price !== undefined && (
-                <p>Цена: {order.price} {order.currency}</p>
-              )}
-              <p>Дата: {new Date(order.timestamp.seconds * 1000).toLocaleString()}</p>
+              <h3>{order.title || order.serviceTitle || "Заказ"}</h3>
+              <p>Статус: <span className={`order-status ${(order.status || "").toLowerCase().replace(' ', '-')}`}>{order.status || "В обработке"}</span></p>
+              <p>Цена: {formatPrice(order.price, order.currency)}</p>
+              <p>Дата: {formatDate(order.createdAt || order.timestamp)}</p>
             </div>
           ))}
         </div>
