@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, doc, setDoc, deleteDoc, query, where, orderBy, limit, getDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, getDocs, doc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { db } from '../../assets/firebase';
 import '../../styles/pages/Income.css';
+// import { Line } from 'react-chartjs-2';
+import 'chart.js/auto';
+import { DollarSign, ShoppingBag, PieChart, PlusCircle, Edit, Trash2, Plus, Minus, AlertTriangle, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, Title } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
-import { DollarSign, ShoppingBag, PieChart, PlusCircle, Edit, Trash2, Plus, Minus, ChevronRight, AlertTriangle, X, CheckCircle, AlertCircle } from 'lucide-react';
 
 // Регистрируем компоненты Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, Title);

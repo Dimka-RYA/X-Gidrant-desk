@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../../assets/firebase';
 import '../../styles/pages/Clients.css';
@@ -46,24 +46,12 @@ const Clients: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   // editingCell — информация о редактируемой ячейке
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
-  // columnWidths — ширина столбцов (для ресайза)
-  const [columnWidths, setColumnWidths] = useState<{[key: string]: number}>({});
   // deleteConfirmOpen — открыто ли окно подтверждения удаления
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
   // clientToDelete — id клиента, которого хотим удалить
   const [clientToDelete, setClientToDelete] = useState<string | null>(null);
   // notification — текст уведомления
   const [notification, setNotification] = useState<string | null>(null);
-  // tableRef — ссылка на таблицу
-  const tableRef = useRef<HTMLTableElement>(null);
-  // resizingColumn — id столбца, который сейчас изменяется
-  const resizingColumn = useRef<string | null>(null);
-  // initialWidth — начальная ширина столбца
-  const initialWidth = useRef<number>(0);
-  // startClientX — начальная позиция мыши
-  const startClientX = useRef<number>(0);
-  // resizeLineRef — ссылка на линию изменения размера
-  const resizeLineRef = useRef<HTMLDivElement | null>(null);
   
   // Получаем список клиентов из Firestore при первом рендере
   useEffect(() => {
@@ -131,114 +119,6 @@ const Clients: React.FC = () => {
 
     fetchClients();
   }, []);
-
-  // Создаем линию индикатора один раз при монтировании компонента
-  useEffect(() => {
-    // Создаем элемент для линии изменения размера
-    const resizeLine = document.createElement('div');
-    resizeLine.className = 'column-resize-line';
-    resizeLine.style.display = 'none';
-    document.body.appendChild(resizeLine);
-    
-    // Сохраняем ссылку на созданный элемент
-    resizeLineRef.current = resizeLine;
-    
-    // Очищаем при размонтировании
-    return () => {
-      if (resizeLine && document.body.contains(resizeLine)) {
-        document.body.removeChild(resizeLine);
-      }
-    };
-  }, []);
-
-  // Обработчик начала изменения размера столбца
-  const handleResizeStart = (columnId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!tableRef.current) return;
-    
-    // Ищем нужную ячейку заголовка
-    const headerCell = tableRef.current.querySelector(`th[data-column="${columnId}"]`) as HTMLTableHeaderCellElement;
-    if (!headerCell) return;
-    
-    // Сохраняем данные для изменения размера
-    resizingColumn.current = columnId;
-    const headerRect = headerCell.getBoundingClientRect();
-    initialWidth.current = headerRect.width;
-    startClientX.current = e.clientX;
-    
-    // Показываем линию изменения размера
-    if (resizeLineRef.current) {
-      const tableRect = tableRef.current.getBoundingClientRect();
-      resizeLineRef.current.style.top = `${tableRect.top}px`;
-      resizeLineRef.current.style.left = `${headerRect.right}px`;
-      resizeLineRef.current.style.height = `${tableRect.height}px`;
-      resizeLineRef.current.style.display = 'block';
-    }
-    
-    // Добавляем стиль к телу документа
-    document.body.classList.add('resizing');
-    
-    // Добавляем обработчики для отслеживания движения мыши и отпускания кнопки
-    document.addEventListener('mousemove', handleResizeMove);
-    document.addEventListener('mouseup', handleResizeEnd);
-  };
-  
-  // Обработчик движения мыши при изменении размера
-  const handleResizeMove = (e: MouseEvent) => {
-    if (!resizingColumn.current || !resizeLineRef.current || !tableRef.current) return;
-    
-    // Вычисляем, насколько нужно изменить ширину
-    const diff = e.clientX - startClientX.current;
-    const newWidth = Math.max(50, initialWidth.current + diff); // Минимальная ширина 50px
-    
-    // Обновляем положение линии изменения размера
-    const headerCell = tableRef.current.querySelector(`th[data-column="${resizingColumn.current}"]`) as HTMLTableHeaderCellElement;
-    if (headerCell) {
-      const headerRect = headerCell.getBoundingClientRect();
-      resizeLineRef.current.style.left = `${headerRect.left + newWidth}px`;
-    }
-  };
-  
-  // Обработчик завершения изменения размера
-  const handleResizeEnd = () => {
-    if (!resizingColumn.current || !tableRef.current || !resizeLineRef.current) return;
-    
-    // Скрываем линию изменения размера
-    resizeLineRef.current.style.display = 'none';
-    
-    // Удаляем стиль с тела документа
-    document.body.classList.remove('resizing');
-    
-    // Вычисляем новую ширину на основе положения линии
-    const lineLeft = parseInt(resizeLineRef.current.style.left);
-    const headerCell = tableRef.current.querySelector(`th[data-column="${resizingColumn.current}"]`) as HTMLTableHeaderCellElement;
-    
-    if (headerCell) {
-      const headerRect = headerCell.getBoundingClientRect();
-      const newWidth = lineLeft - headerRect.left;
-      
-      // Применяем ширину ко всем ячейкам в столбце
-      const allCells = tableRef.current.querySelectorAll(`[data-column="${resizingColumn.current}"]`);
-      allCells.forEach(cell => {
-        (cell as HTMLElement).style.width = `${newWidth}px`;
-      });
-      
-      // Сохраняем новую ширину в состоянии
-      setColumnWidths(prev => ({
-        ...prev,
-        [resizingColumn.current as string]: newWidth
-      }));
-    }
-    
-    // Сбрасываем данные
-    resizingColumn.current = null;
-    
-    // Удаляем обработчики
-    document.removeEventListener('mousemove', handleResizeMove);
-    document.removeEventListener('mouseup', handleResizeEnd);
-  };
 
   // Обработчик начала редактирования ячейки
   const handleCellClick = (client: Client, field: keyof Client) => {

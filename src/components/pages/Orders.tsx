@@ -3,15 +3,12 @@ import {
   collection, 
   getDocs, 
   doc, 
-  setDoc, 
   deleteDoc, 
   updateDoc, 
   query, 
   where, 
   orderBy, 
   onSnapshot,
-  addDoc,
-  Timestamp,
   serverTimestamp,
   getDoc,
   GeoPoint
@@ -83,19 +80,16 @@ interface Employee {
 const Orders: React.FC = () => {
   // Состояния
   const [orders, setOrders] = useState<Order[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [, setEmployees] = useState<Employee[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isAssigningOrder, setIsAssigningOrder] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('все');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string>('');
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
@@ -440,7 +434,6 @@ const Orders: React.FC = () => {
   const closeDetailsModal = () => {
     setIsDetailsModalOpen(false);
     setSelectedOrder(null);
-    setIsAssigningOrder(false);
     setIsEditingOrder(false);
   };
 

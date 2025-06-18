@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   collection, 
   getDocs, 
   doc, 
-  setDoc, 
   deleteDoc, 
   updateDoc, 
   query, 
@@ -11,7 +10,6 @@ import {
   orderBy, 
   onSnapshot,
   addDoc,
-  Timestamp,
   serverTimestamp,
   getDoc,
   GeoPoint
@@ -19,7 +17,6 @@ import {
 import { db } from '../../assets/firebase';
 import '../../styles/pages/Dispatcher.css';
 import LocationMap from '../Map';
-import { LatLngExpression } from 'leaflet';
 
 // Расширенный тип для статусного события
 interface StatusEvent {

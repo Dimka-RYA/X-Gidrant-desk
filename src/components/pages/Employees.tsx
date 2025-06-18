@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, query, where, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { db, auth } from '../../assets/firebase';
 import '../../styles/pages/Employees.css';
@@ -205,15 +205,13 @@ const Employees: React.FC = () => {
   const handleResizeMove = (e: MouseEvent) => {
     if (!resizingColumn.current || !resizeLineRef.current || !tableRef.current) return;
     
-    // Вычисляем, насколько нужно изменить ширину
     const diff = e.clientX - startClientX.current;
-    const newWidth = Math.max(50, initialWidth.current + diff); // Минимальная ширина 50px
+    const newWidth = Math.max(50, initialWidth.current + diff);
     
     // Обновляем положение линии изменения размера
     const headerCell = tableRef.current.querySelector(`th[data-column="${resizingColumn.current}"]`) as HTMLTableHeaderCellElement;
     if (headerCell) {
       const headerRect = headerCell.getBoundingClientRect();
-      const tableRect = tableRef.current.getBoundingClientRect();
       
       // Вычисляем абсолютную позицию слева для линии
       const absoluteLeft = headerRect.left + newWidth;
@@ -222,7 +220,7 @@ const Employees: React.FC = () => {
   };
   
   // Обработчик завершения изменения размера
-  const handleResizeEnd = (e?: MouseEvent) => {
+  const handleResizeEnd = () => {
     if (!resizingColumn.current || !tableRef.current || !resizeLineRef.current) {
       cleanupResizeHandlers();
       return;
